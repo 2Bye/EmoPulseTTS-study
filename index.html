@@ -260,18 +260,18 @@ function screenTask(){
   function check(){if(pa.played()&&(!pb||pb.played()))ctrl.querySelectorAll("button").forEach(b=>b.disabled=false);}
   let ctrl;
   if(it.type==="cmos"){
-    c.append(el(`<h2>${t.cmosQ}</h2><p class="mut">${t.cmosSub}</p>`));
+    c.append(el(`<div><h2>${t.cmosQ}</h2><p class="mut">${t.cmosSub}</p></div>`));
     c.append(el(`<p class="mut">${t.cmosLegend}</p>`));
     c.append(pa,pb);
     ctrl=el(`<div class="scale"></div>`);
     LABELS.cmos.en.forEach((_,k)=>{const side=k<3?" ba":k>3?" bb":"";const b=el(`<button disabled class="${side.trim()}">${LABELS.cmos[S.lang][k]}</button>`);b.onclick=()=>done(k-3,null,b);ctrl.append(b);});
   }else if(it.type==="afc_intensity"){
-    c.append(el(`<h2>${t.intensityQ}</h2><p class="mut">${t.intensitySub}</p>`));
+    c.append(el(`<div><h2>${t.intensityQ}</h2><p class="mut">${t.intensitySub}</p></div>`));
     c.append(pa,pb);
     ctrl=el(`<div class="row"></div>`);
     LABELS.ab.v.forEach((v,k)=>{const b=el(`<button disabled class="${k===0?"ba":"bb"}">${bilabel("ab",k)}</button>`);b.onclick=()=>done(v,null,b);ctrl.append(b);});
   }else{ // afc_half
-    c.append(el(`<h2>${t.halfQ}</h2><p class="mut">${t.halfSub}</p>`));
+    c.append(el(`<div><h2>${t.halfQ}</h2><p class="mut">${t.halfSub}</p></div>`));
     c.append(pa);
     ctrl=el(`<div class="row"></div>`);
     LABELS.half.v.forEach((v,k)=>{const b=el(`<button disabled>${bilabel("half",k)}</button>`);b.onclick=()=>done(v,null,b);ctrl.append(b);});

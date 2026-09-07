@@ -212,9 +212,9 @@ function screenHp(i){
     <p>${t.hpQuestion}</p></div>`);
   const p=player("♪",audioUrl(trial.audio),()=>{btns.forEach(b=>b.disabled=false);});
   c.append(p);
-  const row=el(`<div class="row"></div>`);const btns=[];
+  const row=el(`<div class="row"></div>`);const btns=[];let sent=false;
   LABELS.hp.en.forEach((_,k)=>{const b=el(`<button disabled>${bilabel("hp",k)}</button>`);
-    b.onclick=()=>{btns.forEach(x=>{if(x!==b)x.disabled=true;});b.classList.add("sel");b.textContent="\u2713 "+b.textContent;if(k===trial.answer)S.hpPass++;S.answers.push({id:trial.id,type:"hp",v:k,correct:k===trial.answer});save();setTimeout(()=>screenHp(i+1),300);};
+    b.onclick=()=>{if(sent)return;sent=true;btns.forEach(x=>{x.disabled=true;});b.classList.add("sel");b.textContent="\u2713 "+b.textContent;if(k===trial.answer)S.hpPass++;S.answers.push({id:trial.id,type:"hp",v:k,correct:k===trial.answer});save();setTimeout(()=>screenHp(i+1),300);};
     btns.push(b);row.append(b);});
   c.append(row);app.append(c);
 }
@@ -245,8 +245,10 @@ function screenTask(){
   app.append(head);
   const c=el(`<div class="card"></div>`);app.append(c);
   const startT=Date.now();
+  let sent=false;
   const done=(v,extra,btn)=>{
-    if(btn){c.querySelectorAll("button").forEach(b=>{if(b!==btn)b.disabled=true;});btn.classList.add("sel");btn.textContent="\u2713 "+btn.textContent;}
+    if(sent)return;sent=true;   // a second click inside the 350 ms delay used to record twice and skip a task
+    if(btn){c.querySelectorAll("button").forEach(b=>b.disabled=true);btn.classList.add("sel");btn.textContent="\u2713 "+btn.textContent;}
     S.answers.push(Object.assign({id:it.id,type:it.type,v,ms:Date.now()-startT},extra||{}));
     S.idx++;save();setTimeout(screenTask,btn?350:0);};
 

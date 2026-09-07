@@ -43,7 +43,7 @@ const I18N={
     introTitle:"Listening study (~25 min)",
     introP1:"You will listen to short English speech clips and answer simple questions (which clip sounds more natural / more emotional, and where in a sentence the emotion is).",
     introP2:"<b>Please use headphones</b> in a quiet room. A short headphone check comes first.",
-    introP3:"Anonymous participation; only your Prolific ID and your answers are recorded. Audio is synthetic speech generated for research. You may stop at any time (no data is sent before the end). By continuing you consent to the use of your anonymised answers in academic research.",
+    introP3:"Anonymous participation; only your participant ID and your answers are recorded. Audio is synthetic speech generated for research. You may stop at any time (no data is sent before the end). By continuing you consent to the use of your anonymised answers in academic research.",
     startBtn:"I use headphones — start",
     hpFailTitle:"Headphone check not passed",
     hpFailBody:(pass,total,need)=>`This study requires headphones (${pass}/${total} correct, need ${need}). Please return the submission on Prolific.`,
@@ -65,8 +65,8 @@ const I18N={
     uploadFailed:"Automatic upload failed. Please download the file and send it to the researcher, then use the completion code from Prolific.",
     downloadBtn:"Download my answers",
     noPid:"No Prolific ID in the link.",
-    manualLabel:"Enter your ID:",
-    manualPlaceholder:"Your ID",
+    manualLabel:"Please enter your name or nickname:",
+    manualPlaceholder:"Your name",
     manualSubmit:"Continue",
     manifestErr:e=>`Cannot load study: ${e}`,
   },
@@ -74,7 +74,7 @@ const I18N={
     introTitle:"Исследование восприятия речи (~25 мин)",
     introP1:"Вы прослушаете короткие английские аудиозаписи речи и ответите на простые вопросы (какая запись звучит более естественно / более эмоционально, и в какой части предложения звучит эмоция).",
     introP2:"<b>Пожалуйста, используйте наушники</b> в тихом помещении. Сначала — короткая проверка наушников.",
-    introP3:"Участие анонимно; сохраняются только ваш Prolific ID и ваши ответы. Аудио — это синтетическая речь, созданная для исследования. Вы можете остановиться в любой момент (данные не отправляются до завершения). Продолжая, вы соглашаетесь на использование ваших обезличенных ответов в академическом исследовании.",
+    introP3:"Участие анонимно; сохраняются только ваш идентификатор участника и ваши ответы. Аудио — это синтетическая речь, созданная для исследования. Вы можете остановиться в любой момент (данные не отправляются до завершения). Продолжая, вы соглашаетесь на использование ваших обезличенных ответов в академическом исследовании.",
     startBtn:"Я использую наушники — начать",
     hpFailTitle:"Проверка наушников не пройдена",
     hpFailBody:(pass,total,need)=>`Для этого исследования нужны наушники (${pass}/${total} верно, нужно ${need}). Пожалуйста, верните заявку на Prolific.`,
@@ -96,8 +96,8 @@ const I18N={
     uploadFailed:"Автоматическая отправка не удалась. Пожалуйста, скачайте файл и отправьте его исследователю, затем используйте код завершения от Prolific.",
     downloadBtn:"Скачать мои ответы",
     noPid:"В ссылке нет Prolific ID.",
-    manualLabel:"Введите ваш ID:",
-    manualPlaceholder:"Ваш ID",
+    manualLabel:"Введите ваше имя или ник:",
+    manualPlaceholder:"Имя или ник",
     manualSubmit:"Продолжить",
     manifestErr:e=>`Не удалось загрузить исследование: ${e}`,
   },
@@ -126,12 +126,16 @@ function pidFromUrl(){
 }
 function srcFromUrl(){
   const u=new URL(location.href);
-  const v=(u.searchParams.get("src")||"prolific").toLowerCase();
-  return v==="friends"?"friends":"prolific";
+  const v=(u.searchParams.get("src")||"").toLowerCase();
+  if(v==="prolific")return "prolific";
+  if(v==="pilot"||v==="friends")return "pilot"; // "friends" kept as a legacy alias
+  return u.searchParams.get("PROLIFIC_PID")?"prolific":"pilot"; // clean link = pilot
 }
 function langFromUrl(){
   const u=new URL(location.href);
-  return (u.searchParams.get("lang")||"en").toLowerCase()==="ru"?"ru":"en";
+  const v=(u.searchParams.get("lang")||"").toLowerCase();
+  if(v==="ru"||v==="en")return v;
+  return (navigator.language||"en").toLowerCase().startsWith("ru")?"ru":"en";
 }
 function hashInt(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h;}
 function audioUrl(id){return `audio/${id}.${S.manifest.audio_ext}`;}
@@ -282,7 +286,8 @@ async function screenSubmit(){
 function screenManualPid(){
   const t=L();
   app.innerHTML="";
-  const c=el(`<div class="card"><h1>${t.introTitle}</h1><p class="mut">${t.noPid}</p>
+  const noPidLine=S.src==="prolific"?`<p class="mut">${t.noPid}</p>`:"";
+  const c=el(`<div class="card"><h1>${t.introTitle}</h1>${noPidLine}
     <div class="row"><label for="pidInput">${t.manualLabel}</label>
     <input id="pidInput" type="text" placeholder="${t.manualPlaceholder}" autocomplete="off">
     <button class="primary" id="pidGo">${t.manualSubmit}</button></div></div>`);

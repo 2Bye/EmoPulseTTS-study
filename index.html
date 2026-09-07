@@ -61,7 +61,7 @@ const I18N={
     anchorQ:"How natural does this clip sound?",
     cmosQ:"Which clip sounds more natural?",
     cmosSub:"Same sentence, two versions. Listen to both fully.",
-    cmosLegend:"How to answer: minus = clip <b class=ca>A</b> sounds more natural, plus = clip <b class=cb>B</b>; the bigger the number, the stronger your preference. \"same\" = no difference.",
+    cmosLegend:"Pick the button that matches your impression — which clip (<b class=ca>A</b> or <b class=cb>B</b>) sounds more natural, and by how much. If you hear no difference, pick the middle one.",
     intensityQ:"In which clip does the emotion sound STRONGER?",
     intensitySub:"Listen to both fully.",
     halfQ:"Where do you hear the emotion?",
@@ -93,7 +93,7 @@ const I18N={
     anchorQ:"Насколько естественно звучит эта запись?",
     cmosQ:"Какая запись звучит более естественно?",
     cmosSub:"Одно и то же предложение, две версии. Прослушайте обе полностью.",
-    cmosLegend:"Как отвечать: минус — запись <b class=ca>A</b> звучит естественнее, плюс — запись <b class=cb>B</b>; чем больше число, тем сильнее ваше предпочтение. «одинаково» — разницы нет.",
+    cmosLegend:"Выберите кнопку, которая совпадает с вашим впечатлением: какая запись (<b class=ca>A</b> или <b class=cb>B</b>) звучит естественнее и насколько. Если разницы не слышно — средняя кнопка.",
     intensityQ:"В какой записи эмоция звучит СИЛЬНЕЕ?",
     intensitySub:"Прослушайте обе полностью.",
     halfQ:"В какой части вы слышите эмоцию?",
@@ -118,8 +118,8 @@ const I18N={
 const LABELS={
   hp:{en:["1st","2nd","3rd"],ru:["1-й","2-й","3-й"]},
   scale5:{en:["1 bad","2","3","4","5 excellent"],ru:["1 плохо","2","3","4","5 отлично"]},
-  cmos:{en:["A much better","-2","-1","same","+1","+2","B much better"],
-        ru:["A значительно лучше","-2","-1","одинаково","+1","+2","B значительно лучше"]},
+  cmos:{en:["A much better","A better","A slightly better","No difference","B slightly better","B better","B much better"],
+        ru:["A намного лучше","A лучше","A чуть лучше","Одинаково","B чуть лучше","B лучше","B намного лучше"]},
   ab:{v:["a","b"],en:["Clip A","Clip B"],ru:["Клип A","Клип B"]},
   half:{v:["first","second"],en:["First half","Second half"],ru:["Первая половина","Вторая половина"]},
 };
@@ -254,7 +254,7 @@ function screenTask(){
     c.append(el(`<p class="mut">${t.cmosLegend}</p>`));
     c.append(pa,pb);
     ctrl=el(`<div class="scale"></div>`);
-    LABELS.cmos.en.forEach((_,k)=>{const side=k<3?" ba":k>3?" bb":"";const b=el(`<button disabled class="${side.trim()}">${bilabel("cmos",k)}</button>`);b.onclick=()=>done(k-3,null,b);ctrl.append(b);});
+    LABELS.cmos.en.forEach((_,k)=>{const side=k<3?" ba":k>3?" bb":"";const b=el(`<button disabled class="${side.trim()}">${LABELS.cmos[S.lang][k]}</button>`);b.onclick=()=>done(k-3,null,b);ctrl.append(b);});
   }else if(it.type==="afc_intensity"){
     c.append(el(`<h2>${t.intensityQ}</h2><p class="mut">${t.intensitySub}</p>`));
     c.append(pa,pb);

@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Listening Study</title>
+<style>
+  :root{--bg:#f7f6f2;--card:#fff;--ink:#1c1c1c;--mut:#6b6b6b;--acc:#2456d6;--ok:#1a7f37;--bad:#b42318}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
+  main{max-width:640px;margin:0 auto;padding:24px 16px 80px}
+  .card{background:var(--card);border:1px solid #e4e2da;border-radius:12px;padding:20px;margin:14px 0}
+  h1{font-size:22px;margin:8px 0} h2{font-size:17px;margin:0 0 10px}
+  .mut{color:var(--mut);font-size:14px}
+  button{font:inherit;border:1px solid #cfcdc4;background:#fff;border-radius:10px;padding:10px 16px;cursor:pointer}
+  button:disabled{opacity:.45;cursor:default}
+  button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+  input[type=text]{font:inherit;border:1px solid #cfcdc4;border-radius:10px;padding:10px 12px;min-width:200px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .scale{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+  .scale button{min-width:52px}
+  .play{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .play .tag{font-weight:600;min-width:24px}
+  .done{color:var(--ok);font-weight:600}
+  progress{width:100%;height:8px}
+  .err{color:var(--bad)}
+  .choice{width:100%;padding:14px;margin-top:8px;text-align:left}
+  .choice.sel{border-color:var(--acc);background:#eef2ff}
+</style>
+</head>
+<body>
+<main id="app"><div class="card"><h1>Listening study</h1><p class="mut" id="boot">Loading…</p></div></main>
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const app=$("#app");
+const S={pid:null,src:"prolific",lang:"en",manifest:null,answers:[],idx:0,queue:[],hpPass:0,t0:Date.now()};
+const LS_KEY="study_state_v1";
+
+// ---- i18n: UI instructions/hints are fully translated; ANSWER labels are ----
+// ---- duplicated "ru / en" so the recorded response stays unambiguous.    ----
+const I18N={
+  en:{
+    introTitle:"Listening study (~25 min)",
+    introP1:"You will listen to short English speech clips and answer simple questions (which clip sounds more natural / more emotional, and where in a sentence the emotion is).",
+    introP2:"<b>Please use headphones</b> in a quiet room. A short headphone check comes first.",
+    introP3:"Anonymous participation; only your Prolific ID and your answers are recorded. Audio is synthetic speech generated for research. You may stop at any time (no data is sent before the end). By continuing you consent to the use of your anonymised answers in academic research.",
+    startBtn:"I use headphones — start",
+    hpFailTitle:"Headphone check not passed",
+    hpFailBody:(pass,total,need)=>`This study requires headphones (${pass}/${total} correct, need ${need}). Please return the submission on Prolific.`,
+    hpTitle:(i,total)=>`Headphone check ${i}/${total}`,
+    hpQuestion:"You will hear <b>three tones</b>. Which one is the <b>quietest</b>?",
+    anchorQ:"How natural does this clip sound?",
+    cmosQ:"Which clip sounds more natural?",
+    cmosSub:"Same sentence, two versions. Listen to both fully.",
+    intensityQ:"In which clip does the emotion sound STRONGER?",
+    intensitySub:"Listen to both fully.",
+    halfQ:"Where do you hear the emotion?",
+    halfSub:"One clip; the emotion sits in one part of the sentence.",
+    play:"▶ play",stop:"■ stop",replay:"▶ replay",
+    notPlayed:"not played",playingSt:"playing…",playedSt:"✓ played",
+    blockedSt:"blocked — click again",errorSt:"load error",
+    progress:(i,total)=>`${i} / ${total}`,
+    submittingTitle:"Submitting…",submittingBody:"Sending your answers.",
+    doneMsg:"Done — thank you!",redirecting:" Redirecting to Prolific…",
+    uploadFailed:"Automatic upload failed. Please download the file and send it to the researcher, then use the completion code from Prolific.",
+    downloadBtn:"Download my answers",
+    noPid:"No Prolific ID in the link.",
+    manualLabel:"Enter your ID:",
+    manualPlaceholder:"Your ID",
+    manualSubmit:"Continue",
+    manifestErr:e=>`Cannot load study: ${e}`,
+  },
+  ru:{
+    introTitle:"Исследование восприятия речи (~25 мин)",
+    introP1:"Вы прослушаете короткие английские аудиозаписи речи и ответите на простые вопросы (какая запись звучит более естественно / более эмоционально, и в какой части предложения звучит эмоция).",
+    introP2:"<b>Пожалуйста, используйте наушники</b> в тихом помещении. Сначала — короткая проверка наушников.",
+    introP3:"Участие анонимно; сохраняются только ваш Prolific ID и ваши ответы. Аудио — это синтетическая речь, созданная для исследования. Вы можете остановиться в любой момент (данные не отправляются до завершения). Продолжая, вы соглашаетесь на использование ваших обезличенных ответов в академическом исследовании.",
+    startBtn:"Я использую наушники — начать",
+    hpFailTitle:"Проверка наушников не пройдена",
+    hpFailBody:(pass,total,need)=>`Для этого исследования нужны наушники (${pass}/${total} верно, нужно ${need}). Пожалуйста, верните заявку на Prolific.`,
+    hpTitle:(i,total)=>`Проверка наушников ${i}/${total}`,
+    hpQuestion:"Вы услышите <b>три тона</b>. Какой из них самый <b>тихий</b>?",
+    anchorQ:"Насколько естественно звучит эта запись?",
+    cmosQ:"Какая запись звучит более естественно?",
+    cmosSub:"Одно и то же предложение, две версии. Прослушайте обе полностью.",
+    intensityQ:"В какой записи эмоция звучит СИЛЬНЕЕ?",
+    intensitySub:"Прослушайте обе полностью.",
+    halfQ:"В какой части вы слышите эмоцию?",
+    halfSub:"Одна запись; эмоция находится в одной части предложения.",
+    play:"▶ слушать",stop:"■ стоп",replay:"▶ ещё раз",
+    notPlayed:"не прослушано",playingSt:"воспроизведение…",playedSt:"✓ прослушано",
+    blockedSt:"заблокировано — нажмите ещё раз",errorSt:"ошибка загрузки",
+    progress:(i,total)=>`${i} / ${total}`,
+    submittingTitle:"Отправка…",submittingBody:"Отправляем ваши ответы.",
+    doneMsg:"Готово — спасибо!",redirecting:" Перенаправление на Prolific…",
+    uploadFailed:"Автоматическая отправка не удалась. Пожалуйста, скачайте файл и отправьте его исследователю, затем используйте код завершения от Prolific.",
+    downloadBtn:"Скачать мои ответы",
+    noPid:"В ссылке нет Prolific ID.",
+    manualLabel:"Введите ваш ID:",
+    manualPlaceholder:"Ваш ID",
+    manualSubmit:"Продолжить",
+    manifestErr:e=>`Не удалось загрузить исследование: ${e}`,
+  },
+};
+// answer-button labels: parallel en/ru arrays (or [value,label] pairs); "same" text
+// (pure digits, +/-N) is not duplicated since it carries no language.
+const LABELS={
+  hp:{en:["1st","2nd","3rd"],ru:["1-й","2-й","3-й"]},
+  scale5:{en:["1 bad","2","3","4","5 excellent"],ru:["1 плохо","2","3","4","5 отлично"]},
+  cmos:{en:["A much better","-2","-1","same","+1","+2","B much better"],
+        ru:["A значительно лучше","-2","-1","одинаково","+1","+2","B значительно лучше"]},
+  ab:{v:["a","b"],en:["Clip A","Clip B"],ru:["Клип A","Клип B"]},
+  half:{v:["first","second"],en:["First half","Second half"],ru:["Первая половина","Вторая половина"]},
+};
+function L(){return I18N[S.lang];}
+function bilabel(cat,i){
+  const en=LABELS[cat].en[i];
+  if(S.lang!=="ru")return en;
+  const ru=LABELS[cat].ru[i];
+  return ru===en?en:`${ru} / ${en}`;
+}
+
+function pidFromUrl(){
+  const u=new URL(location.href);
+  return u.searchParams.get("PROLIFIC_PID")||u.searchParams.get("pid");
+}
+function srcFromUrl(){
+  const u=new URL(location.href);
+  const v=(u.searchParams.get("src")||"prolific").toLowerCase();
+  return v==="friends"?"friends":"prolific";
+}
+function langFromUrl(){
+  const u=new URL(location.href);
+  return (u.searchParams.get("lang")||"en").toLowerCase()==="ru"?"ru":"en";
+}
+function hashInt(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h;}
+function audioUrl(id){return `audio/${id}.${S.manifest.audio_ext}`;}
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify({pid:S.pid,answers:S.answers,idx:S.idx}));}catch(e){}}
+function el(html){const d=document.createElement("div");d.innerHTML=html;return d.firstElementChild;}
+
+function player(tag,src,onended){
+  const t=L();
+  const w=el(`<div class="play"><span class="tag">${tag}</span><button>${t.play}</button><span class="mut st">${t.notPlayed}</span></div>`);
+  const btn=w.querySelector("button"),st=w.querySelector(".st");
+  let a=null,playedFull=false;
+  btn.onclick=()=>{
+    if(a){a.pause();a=null;btn.textContent=t.play;return;}
+    a=new Audio(src);btn.textContent=t.stop;st.textContent=t.playingSt;
+    a.onended=()=>{playedFull=true;st.textContent=t.playedSt;st.className="st done";btn.textContent=t.replay;a=null;onended&&onended();};
+    a.onerror=()=>{st.textContent=t.errorSt;st.className="st err";a=null;};
+    a.play().catch(err=>{
+      const blocked=err&&err.name==="NotAllowedError";
+      st.textContent=blocked?t.blockedSt:t.errorSt;
+      if(!blocked)st.className="st err";
+      a=null;btn.textContent=t.play;});
+  };
+  w.played=()=>playedFull;
+  return w;
+}
+
+function screenIntro(){
+  const t=L();
+  app.innerHTML="";
+  const c=el(`<div class="card"><h1>${t.introTitle}</h1>
+  <p>${t.introP1}</p>
+  <p>${t.introP2}</p>
+  <p class="mut">${t.introP3}</p>
+  <div class="row"><button class="primary" id="go">${t.startBtn}</button></div></div>`);
+  app.append(c);
+  $("#go").onclick=()=>{S.answers.push({id:"consent",v:1,t:Date.now()-S.t0});screenHp(0);};
+}
+
+function screenHp(i){
+  const t=L();
+  const trials=S.manifest.hp_check;
+  if(i>=trials.length){
+    const need=S.manifest.config.min_hp_pass??5;
+    if(S.hpPass>=need){buildQueue();return screenTask();}
+    app.innerHTML="";app.append(el(`<div class="card"><h2>${t.hpFailTitle}</h2>
+      <p>${t.hpFailBody(S.hpPass,trials.length,need)}</p></div>`));
+    return;
+  }
+  app.innerHTML="";
+  const trial=trials[i];
+  const c=el(`<div class="card"><h2>${t.hpTitle(i+1,trials.length)}</h2>
+    <p>${t.hpQuestion}</p></div>`);
+  const p=player("♪",audioUrl(trial.audio),()=>{btns.forEach(b=>b.disabled=false);});
+  c.append(p);
+  const row=el(`<div class="row"></div>`);const btns=[];
+  LABELS.hp.en.forEach((_,k)=>{const b=el(`<button disabled>${bilabel("hp",k)}</button>`);
+    b.onclick=()=>{if(k===trial.answer)S.hpPass++;S.answers.push({id:trial.id,type:"hp",v:k,correct:k===trial.answer});screenHp(i+1);};
+    btns.push(b);row.append(b);});
+  c.append(row);app.append(c);
+}
+
+function buildQueue(){
+  const m=S.manifest;
+  const sched=m.schedules[hashInt(S.pid)%m.schedules.length];
+  const ids=[...sched.A,...sched.B,...(sched.C||[])];
+  const q=ids.map(id=>m.items[id]).filter(Boolean);
+  // insert anchors ~1/3 and ~2/3 through
+  (m.anchors||[]).forEach((a,k)=>q.splice(Math.floor(q.length*(k+1)/3),0,a));
+  S.queue=q;
+  const saved=(()=>{try{return JSON.parse(localStorage.getItem(LS_KEY));}catch(e){return null;}})();
+  if(saved&&saved.pid===S.pid&&saved.idx>0&&saved.idx<q.length){S.answers=saved.answers;S.idx=saved.idx;}
+}
+
+function screenTask(){
+  const t=L();
+  if(S.idx>=S.queue.length)return screenSubmit();
+  const it=S.queue[S.idx];
+  app.innerHTML="";
+  const head=el(`<div class="card"><progress max="${S.queue.length}" value="${S.idx}"></progress>
+    <p class="mut">${t.progress(S.idx+1,S.queue.length)}</p></div>`);
+  app.append(head);
+  const c=el(`<div class="card"></div>`);app.append(c);
+  const startT=Date.now();
+  const done=(v,extra)=>{S.answers.push(Object.assign({id:it.id,type:it.type,v,ms:Date.now()-startT},extra||{}));
+    S.idx++;save();screenTask();};
+
+  if(it.type==="anchor"){
+    c.append(el(`<h2>${t.anchorQ}</h2>`));
+    const p=player("♪",audioUrl(it.audio),()=>sc.querySelectorAll("button").forEach(b=>b.disabled=false));
+    c.append(p);
+    const sc=el(`<div class="scale"></div>`);
+    LABELS.scale5.en.forEach((_,k)=>{const b=el(`<button disabled>${bilabel("scale5",k)}</button>`);
+      b.onclick=()=>done(k+1);sc.append(b);});
+    c.append(sc);return;
+  }
+
+  const pa=player("A",audioUrl(it.audio_a),check), pb=it.audio_b?player("B",audioUrl(it.audio_b),check):null;
+  function check(){if(pa.played()&&(!pb||pb.played()))ctrl.querySelectorAll("button").forEach(b=>b.disabled=false);}
+  let ctrl;
+  if(it.type==="cmos"){
+    c.append(el(`<h2>${t.cmosQ}</h2><p class="mut">${t.cmosSub}</p>`));
+    c.append(pa,pb);
+    ctrl=el(`<div class="scale"></div>`);
+    LABELS.cmos.en.forEach((_,k)=>{const b=el(`<button disabled>${bilabel("cmos",k)}</button>`);b.onclick=()=>done(k-3);ctrl.append(b);});
+  }else if(it.type==="afc_intensity"){
+    c.append(el(`<h2>${t.intensityQ}</h2><p class="mut">${t.intensitySub}</p>`));
+    c.append(pa,pb);
+    ctrl=el(`<div class="row"></div>`);
+    LABELS.ab.v.forEach((v,k)=>{const b=el(`<button disabled>${bilabel("ab",k)}</button>`);b.onclick=()=>done(v);ctrl.append(b);});
+  }else{ // afc_half
+    c.append(el(`<h2>${t.halfQ}</h2><p class="mut">${t.halfSub}</p>`));
+    c.append(pa);
+    ctrl=el(`<div class="row"></div>`);
+    LABELS.half.v.forEach((v,k)=>{const b=el(`<button disabled>${bilabel("half",k)}</button>`);b.onclick=()=>done(v);ctrl.append(b);});
+  }
+  c.append(ctrl);
+}
+
+async function screenSubmit(){
+  const t=L();
+  app.innerHTML="";
+  const c=el(`<div class="card"><h2>${t.submittingTitle}</h2><p class="mut" id="st">${t.submittingBody}</p></div>`);
+  app.append(c);
+  const payload={pid:S.pid,src:S.src,lang:S.lang,version:S.manifest.version,started:S.t0,finished:Date.now(),
+                 hp_pass:S.hpPass,answers:S.answers,ua:navigator.userAgent};
+  const url=S.manifest.config.submit_url;
+  let ok=false;
+  if(url){
+    try{const r=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)});
+        ok=r.ok;}catch(e){ok=false;}
+  }
+  const st=$("#st");
+  if(ok){
+    try{localStorage.removeItem(LS_KEY);}catch(e){}
+    st.textContent=t.doneMsg;
+    const cu=S.manifest.config.completion_url;
+    if(cu){st.textContent+=t.redirecting;setTimeout(()=>location.href=cu,1200);}
+  }else{
+    st.innerHTML=t.uploadFailed;
+    const b=el(`<button class="primary">${t.downloadBtn}</button>`);
+    b.onclick=()=>{const a=document.createElement("a");
+      a.href=URL.createObjectURL(new Blob([JSON.stringify(payload)],{type:"application/json"}));
+      a.download=`answers_${S.pid}.json`;a.click();};
+    c.append(b);
+  }
+}
+
+function screenManualPid(){
+  const t=L();
+  app.innerHTML="";
+  const c=el(`<div class="card"><h1>${t.introTitle}</h1><p class="mut">${t.noPid}</p>
+    <div class="row"><label for="pidInput">${t.manualLabel}</label>
+    <input id="pidInput" type="text" placeholder="${t.manualPlaceholder}" autocomplete="off">
+    <button class="primary" id="pidGo">${t.manualSubmit}</button></div></div>`);
+  app.append(c);
+  const input=$("#pidInput");
+  const go=()=>{const v=input.value.trim();if(!v)return;S.pid=v;screenIntro();};
+  $("#pidGo").onclick=go;
+  input.addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  input.focus();
+}
+
+(async function boot(){
+  S.src=srcFromUrl();
+  S.lang=langFromUrl();
+  document.documentElement.lang=S.lang;
+  try{
+    const r=await fetch("manifest.json");
+    if(!r.ok)throw new Error("manifest.json not found next to index.html");
+    S.manifest=await r.json();
+  }catch(e){$("#boot").innerHTML=`<span class="err">${L().manifestErr(e.message)}</span>`;return;}
+  const raw=pidFromUrl();
+  S.pid=(raw&&raw.trim().toLowerCase()!=="manual")?raw.trim():null;
+  if(!S.pid){screenManualPid();return;}
+  screenIntro();
+})();
+</script>
+</body>
+</html>

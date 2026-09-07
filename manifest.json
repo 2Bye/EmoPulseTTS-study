@@ -1,0 +1,836 @@
+{
+ "version": 1,
+ "audio_ext": "ogg",
+ "sr": 24000,
+ "config": {
+  "submit_url": "",
+  "completion_url": "",
+  "min_hp_pass": 5
+ },
+ "hp_check": [
+  {
+   "id": "hp00",
+   "audio": "hp00",
+   "answer": 0
+  },
+  {
+   "id": "hp01",
+   "audio": "hp01",
+   "answer": 0
+  },
+  {
+   "id": "hp02",
+   "audio": "hp02",
+   "answer": 2
+  },
+  {
+   "id": "hp03",
+   "audio": "hp03",
+   "answer": 0
+  },
+  {
+   "id": "hp04",
+   "audio": "hp04",
+   "answer": 2
+  },
+  {
+   "id": "hp05",
+   "audio": "hp05",
+   "answer": 1
+  }
+ ],
+ "anchors": [
+  {
+   "id": "anchor_clean",
+   "type": "anchor",
+   "audio": "s003",
+   "expect": "high"
+  },
+  {
+   "id": "anchor_degraded",
+   "type": "anchor",
+   "audio": "s101",
+   "expect": "low"
+  }
+ ],
+ "items": {
+  "A000": {
+   "id": "A000",
+   "type": "cmos",
+   "audio_a": "s001",
+   "audio_b": "s002"
+  },
+  "A001": {
+   "id": "A001",
+   "type": "cmos",
+   "audio_a": "s001",
+   "audio_b": "s003"
+  },
+  "A002": {
+   "id": "A002",
+   "type": "cmos",
+   "audio_a": "s002",
+   "audio_b": "s003"
+  },
+  "A003": {
+   "id": "A003",
+   "type": "cmos",
+   "audio_a": "s004",
+   "audio_b": "s005"
+  },
+  "A004": {
+   "id": "A004",
+   "type": "cmos",
+   "audio_a": "s006",
+   "audio_b": "s005"
+  },
+  "A005": {
+   "id": "A005",
+   "type": "cmos",
+   "audio_a": "s006",
+   "audio_b": "s004"
+  },
+  "A006": {
+   "id": "A006",
+   "type": "cmos",
+   "audio_a": "s007",
+   "audio_b": "s008"
+  },
+  "A007": {
+   "id": "A007",
+   "type": "cmos",
+   "audio_a": "s007",
+   "audio_b": "s009"
+  },
+  "A008": {
+   "id": "A008",
+   "type": "cmos",
+   "audio_a": "s008",
+   "audio_b": "s009"
+  },
+  "B000": {
+   "id": "B000",
+   "type": "afc_intensity",
+   "audio_a": "s010",
+   "audio_b": "s011"
+  },
+  "B001": {
+   "id": "B001",
+   "type": "afc_intensity",
+   "audio_a": "s012",
+   "audio_b": "s013"
+  },
+  "B002": {
+   "id": "B002",
+   "type": "afc_intensity",
+   "audio_a": "s014",
+   "audio_b": "s015"
+  },
+  "B003": {
+   "id": "B003",
+   "type": "afc_intensity",
+   "audio_a": "s016",
+   "audio_b": "s010"
+  },
+  "B004": {
+   "id": "B004",
+   "type": "afc_intensity",
+   "audio_a": "s013",
+   "audio_b": "s017"
+  },
+  "B005": {
+   "id": "B005",
+   "type": "afc_intensity",
+   "audio_a": "s014",
+   "audio_b": "s018"
+  },
+  "B006": {
+   "id": "B006",
+   "type": "afc_intensity",
+   "audio_a": "s019",
+   "audio_b": "s016"
+  },
+  "B007": {
+   "id": "B007",
+   "type": "afc_intensity",
+   "audio_a": "s017",
+   "audio_b": "s020"
+  },
+  "B008": {
+   "id": "B008",
+   "type": "afc_intensity",
+   "audio_a": "s018",
+   "audio_b": "s021"
+  },
+  "B009": {
+   "id": "B009",
+   "type": "afc_intensity",
+   "audio_a": "s022",
+   "audio_b": "s019"
+  },
+  "B010": {
+   "id": "B010",
+   "type": "afc_intensity",
+   "audio_a": "s020",
+   "audio_b": "s023"
+  },
+  "B011": {
+   "id": "B011",
+   "type": "afc_intensity",
+   "audio_a": "s021",
+   "audio_b": "s024"
+  },
+  "B012": {
+   "id": "B012",
+   "type": "afc_intensity",
+   "audio_a": "s025",
+   "audio_b": "s026"
+  },
+  "B013": {
+   "id": "B013",
+   "type": "afc_intensity",
+   "audio_a": "s027",
+   "audio_b": "s028"
+  },
+  "B014": {
+   "id": "B014",
+   "type": "afc_intensity",
+   "audio_a": "s029",
+   "audio_b": "s030"
+  },
+  "B015": {
+   "id": "B015",
+   "type": "afc_intensity",
+   "audio_a": "s031",
+   "audio_b": "s025"
+  },
+  "B016": {
+   "id": "B016",
+   "type": "afc_intensity",
+   "audio_a": "s032",
+   "audio_b": "s027"
+  },
+  "B017": {
+   "id": "B017",
+   "type": "afc_intensity",
+   "audio_a": "s033",
+   "audio_b": "s030"
+  },
+  "B018": {
+   "id": "B018",
+   "type": "afc_intensity",
+   "audio_a": "s031",
+   "audio_b": "s034"
+  },
+  "B019": {
+   "id": "B019",
+   "type": "afc_intensity",
+   "audio_a": "s032",
+   "audio_b": "s035"
+  },
+  "B020": {
+   "id": "B020",
+   "type": "afc_intensity",
+   "audio_a": "s033",
+   "audio_b": "s036"
+  },
+  "B021": {
+   "id": "B021",
+   "type": "afc_intensity",
+   "audio_a": "s034",
+   "audio_b": "s037"
+  },
+  "B022": {
+   "id": "B022",
+   "type": "afc_intensity",
+   "audio_a": "s035",
+   "audio_b": "s038"
+  },
+  "B023": {
+   "id": "B023",
+   "type": "afc_intensity",
+   "audio_a": "s036",
+   "audio_b": "s039"
+  },
+  "B024": {
+   "id": "B024",
+   "type": "afc_intensity",
+   "audio_a": "s040",
+   "audio_b": "s041"
+  },
+  "B025": {
+   "id": "B025",
+   "type": "afc_intensity",
+   "audio_a": "s042",
+   "audio_b": "s043"
+  },
+  "B026": {
+   "id": "B026",
+   "type": "afc_intensity",
+   "audio_a": "s044",
+   "audio_b": "s045"
+  },
+  "B027": {
+   "id": "B027",
+   "type": "afc_intensity",
+   "audio_a": "s040",
+   "audio_b": "s046"
+  },
+  "B028": {
+   "id": "B028",
+   "type": "afc_intensity",
+   "audio_a": "s043",
+   "audio_b": "s047"
+  },
+  "B029": {
+   "id": "B029",
+   "type": "afc_intensity",
+   "audio_a": "s045",
+   "audio_b": "s048"
+  },
+  "B030": {
+   "id": "B030",
+   "type": "afc_intensity",
+   "audio_a": "s046",
+   "audio_b": "s049"
+  },
+  "B031": {
+   "id": "B031",
+   "type": "afc_intensity",
+   "audio_a": "s050",
+   "audio_b": "s047"
+  },
+  "B032": {
+   "id": "B032",
+   "type": "afc_intensity",
+   "audio_a": "s051",
+   "audio_b": "s048"
+  },
+  "B033": {
+   "id": "B033",
+   "type": "afc_intensity",
+   "audio_a": "s052",
+   "audio_b": "s049"
+  },
+  "B034": {
+   "id": "B034",
+   "type": "afc_intensity",
+   "audio_a": "s053",
+   "audio_b": "s050"
+  },
+  "B035": {
+   "id": "B035",
+   "type": "afc_intensity",
+   "audio_a": "s054",
+   "audio_b": "s051"
+  },
+  "B036": {
+   "id": "B036",
+   "type": "afc_intensity",
+   "audio_a": "s055",
+   "audio_b": "s056"
+  },
+  "B037": {
+   "id": "B037",
+   "type": "afc_intensity",
+   "audio_a": "s057",
+   "audio_b": "s058"
+  },
+  "B038": {
+   "id": "B038",
+   "type": "afc_intensity",
+   "audio_a": "s059",
+   "audio_b": "s060"
+  },
+  "B039": {
+   "id": "B039",
+   "type": "afc_intensity",
+   "audio_a": "s061",
+   "audio_b": "s055"
+  },
+  "B040": {
+   "id": "B040",
+   "type": "afc_intensity",
+   "audio_a": "s062",
+   "audio_b": "s057"
+  },
+  "B041": {
+   "id": "B041",
+   "type": "afc_intensity",
+   "audio_a": "s063",
+   "audio_b": "s060"
+  },
+  "B042": {
+   "id": "B042",
+   "type": "afc_intensity",
+   "audio_a": "s064",
+   "audio_b": "s061"
+  },
+  "B043": {
+   "id": "B043",
+   "type": "afc_intensity",
+   "audio_a": "s062",
+   "audio_b": "s065"
+  },
+  "B044": {
+   "id": "B044",
+   "type": "afc_intensity",
+   "audio_a": "s063",
+   "audio_b": "s066"
+  },
+  "B045": {
+   "id": "B045",
+   "type": "afc_intensity",
+   "audio_a": "s064",
+   "audio_b": "s067"
+  },
+  "B046": {
+   "id": "B046",
+   "type": "afc_intensity",
+   "audio_a": "s068",
+   "audio_b": "s065"
+  },
+  "B047": {
+   "id": "B047",
+   "type": "afc_intensity",
+   "audio_a": "s066",
+   "audio_b": "s069"
+  },
+  "B048": {
+   "id": "B048",
+   "type": "afc_intensity",
+   "audio_a": "s070",
+   "audio_b": "s071"
+  },
+  "B049": {
+   "id": "B049",
+   "type": "afc_intensity",
+   "audio_a": "s072",
+   "audio_b": "s073"
+  },
+  "B050": {
+   "id": "B050",
+   "type": "afc_intensity",
+   "audio_a": "s074",
+   "audio_b": "s075"
+  },
+  "B051": {
+   "id": "B051",
+   "type": "afc_intensity",
+   "audio_a": "s070",
+   "audio_b": "s076"
+  },
+  "B052": {
+   "id": "B052",
+   "type": "afc_intensity",
+   "audio_a": "s072",
+   "audio_b": "s077"
+  },
+  "B053": {
+   "id": "B053",
+   "type": "afc_intensity",
+   "audio_a": "s075",
+   "audio_b": "s078"
+  },
+  "B054": {
+   "id": "B054",
+   "type": "afc_intensity",
+   "audio_a": "s076",
+   "audio_b": "s079"
+  },
+  "B055": {
+   "id": "B055",
+   "type": "afc_intensity",
+   "audio_a": "s077",
+   "audio_b": "s080"
+  },
+  "B056": {
+   "id": "B056",
+   "type": "afc_intensity",
+   "audio_a": "s081",
+   "audio_b": "s078"
+  },
+  "B057": {
+   "id": "B057",
+   "type": "afc_intensity",
+   "audio_a": "s082",
+   "audio_b": "s079"
+  },
+  "B058": {
+   "id": "B058",
+   "type": "afc_intensity",
+   "audio_a": "s083",
+   "audio_b": "s080"
+  },
+  "B059": {
+   "id": "B059",
+   "type": "afc_intensity",
+   "audio_a": "s084",
+   "audio_b": "s081"
+  },
+  "C000": {
+   "id": "C000",
+   "type": "afc_half",
+   "audio_a": "s085"
+  },
+  "C001": {
+   "id": "C001",
+   "type": "afc_half",
+   "audio_a": "s086"
+  },
+  "C002": {
+   "id": "C002",
+   "type": "afc_half",
+   "audio_a": "s087"
+  },
+  "C003": {
+   "id": "C003",
+   "type": "afc_half",
+   "audio_a": "s088"
+  },
+  "C004": {
+   "id": "C004",
+   "type": "afc_half",
+   "audio_a": "s089"
+  },
+  "C005": {
+   "id": "C005",
+   "type": "afc_half",
+   "audio_a": "s090"
+  },
+  "C006": {
+   "id": "C006",
+   "type": "afc_half",
+   "audio_a": "s091"
+  },
+  "C007": {
+   "id": "C007",
+   "type": "afc_half",
+   "audio_a": "s092"
+  },
+  "C008": {
+   "id": "C008",
+   "type": "afc_half",
+   "audio_a": "s093"
+  },
+  "C009": {
+   "id": "C009",
+   "type": "afc_half",
+   "audio_a": "s094"
+  },
+  "C010": {
+   "id": "C010",
+   "type": "afc_half",
+   "audio_a": "s095"
+  },
+  "C011": {
+   "id": "C011",
+   "type": "afc_half",
+   "audio_a": "s096"
+  },
+  "C012": {
+   "id": "C012",
+   "type": "afc_half",
+   "audio_a": "s097"
+  },
+  "C013": {
+   "id": "C013",
+   "type": "afc_half",
+   "audio_a": "s098"
+  },
+  "C014": {
+   "id": "C014",
+   "type": "afc_half",
+   "audio_a": "s099"
+  },
+  "C015": {
+   "id": "C015",
+   "type": "afc_half",
+   "audio_a": "s100"
+  }
+ },
+ "schedules": [
+  {
+   "A": [
+    "A006",
+    "A001",
+    "A003",
+    "A002",
+    "A000",
+    "A008",
+    "A004",
+    "A007",
+    "A005"
+   ],
+   "B": [
+    "B014",
+    "B042",
+    "B015",
+    "B043",
+    "B031",
+    "B055",
+    "B056",
+    "B029",
+    "B011",
+    "B054",
+    "B009",
+    "B001",
+    "B013",
+    "B038",
+    "B030",
+    "B023",
+    "B012",
+    "B058",
+    "B059",
+    "B002"
+   ],
+   "C": [
+    "C010",
+    "C000",
+    "C014",
+    "C002",
+    "C007",
+    "C015",
+    "C001",
+    "C003",
+    "C004",
+    "C006"
+   ]
+  },
+  {
+   "A": [
+    "A000",
+    "A003",
+    "A006",
+    "A008",
+    "A004",
+    "A007",
+    "A005",
+    "A001",
+    "A002"
+   ],
+   "B": [
+    "B036",
+    "B041",
+    "B049",
+    "B025",
+    "B057",
+    "B059",
+    "B012",
+    "B003",
+    "B001",
+    "B032",
+    "B008",
+    "B016",
+    "B017",
+    "B027",
+    "B043",
+    "B038",
+    "B047",
+    "B045",
+    "B055",
+    "B031"
+   ],
+   "C": [
+    "C003",
+    "C011",
+    "C005",
+    "C008",
+    "C015",
+    "C000",
+    "C009",
+    "C001",
+    "C014",
+    "C004"
+   ]
+  },
+  {
+   "A": [
+    "A008",
+    "A006",
+    "A001",
+    "A007",
+    "A005",
+    "A002",
+    "A004",
+    "A000",
+    "A003"
+   ],
+   "B": [
+    "B045",
+    "B027",
+    "B032",
+    "B003",
+    "B015",
+    "B014",
+    "B050",
+    "B002",
+    "B001",
+    "B043",
+    "B019",
+    "B041",
+    "B028",
+    "B058",
+    "B051",
+    "B026",
+    "B036",
+    "B035",
+    "B008",
+    "B037"
+   ],
+   "C": [
+    "C002",
+    "C013",
+    "C003",
+    "C000",
+    "C014",
+    "C012",
+    "C011",
+    "C007",
+    "C005",
+    "C008"
+   ]
+  },
+  {
+   "A": [
+    "A007",
+    "A005",
+    "A001",
+    "A008",
+    "A003",
+    "A004",
+    "A002",
+    "A006",
+    "A000"
+   ],
+   "B": [
+    "B001",
+    "B044",
+    "B021",
+    "B030",
+    "B032",
+    "B028",
+    "B054",
+    "B005",
+    "B037",
+    "B052",
+    "B045",
+    "B014",
+    "B003",
+    "B059",
+    "B022",
+    "B004",
+    "B018",
+    "B057",
+    "B042",
+    "B058"
+   ],
+   "C": [
+    "C011",
+    "C002",
+    "C008",
+    "C013",
+    "C006",
+    "C015",
+    "C001",
+    "C003",
+    "C000",
+    "C005"
+   ]
+  },
+  {
+   "A": [
+    "A006",
+    "A001",
+    "A005",
+    "A004",
+    "A008",
+    "A007",
+    "A000",
+    "A003",
+    "A002"
+   ],
+   "B": [
+    "B044",
+    "B049",
+    "B045",
+    "B054",
+    "B009",
+    "B023",
+    "B004",
+    "B032",
+    "B015",
+    "B046",
+    "B056",
+    "B008",
+    "B027",
+    "B019",
+    "B034",
+    "B051",
+    "B039",
+    "B000",
+    "B057",
+    "B001"
+   ],
+   "C": [
+    "C010",
+    "C002",
+    "C004",
+    "C007",
+    "C015",
+    "C006",
+    "C012",
+    "C011",
+    "C003",
+    "C005"
+   ]
+  },
+  {
+   "A": [
+    "A007",
+    "A006",
+    "A004",
+    "A003",
+    "A008",
+    "A002",
+    "A001",
+    "A000",
+    "A005"
+   ],
+   "B": [
+    "B007",
+    "B036",
+    "B057",
+    "B020",
+    "B013",
+    "B002",
+    "B050",
+    "B037",
+    "B052",
+    "B003",
+    "B021",
+    "B031",
+    "B030",
+    "B029",
+    "B044",
+    "B023",
+    "B051",
+    "B054",
+    "B042",
+    "B019"
+   ],
+   "C": [
+    "C000",
+    "C015",
+    "C003",
+    "C002",
+    "C007",
+    "C001",
+    "C013",
+    "C011",
+    "C008",
+    "C006"
+   ]
+  }
+ ]
+}

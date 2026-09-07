@@ -3,7 +3,7 @@
  "audio_ext": "ogg",
  "sr": 24000,
  "config": {
-  "submit_url": "https://script.google.com/macros/s/AKfycbzYuIed0JKRBspO5ryWux1M40z_ueIm6XX-xwxyG5O3A8PBnxDWWFCAE3InTzv6iRq-/exec",
+  "submit_url": "https://script.google.com/macros/s/AKfycbwAV-qc7ARs5yOzOo5xULzMXn0WFUO3SyMTFYpCpuG87ZWy3uKoGyR6sdzT8Up20rc4/exec",
   "completion_url": "",
   "min_hp_pass": 5
  },

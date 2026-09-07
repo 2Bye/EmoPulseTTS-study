@@ -18,7 +18,14 @@
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .scale{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap}
   .scale button{min-width:52px}
-  .play{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .play{display:flex;align-items:center;gap:10px;margin:8px 0;border-left:4px solid transparent;border-radius:8px;padding:6px 8px}
+  .pa{border-left-color:#2456d6;background:#eef2ff}
+  .pb{border-left-color:#c2571f;background:#fff3ea}
+  .pa .tag{color:#2456d6}.pb .tag{color:#c2571f}
+  .ca{color:#2456d6}.cb{color:#c2571f}
+  button.ba{border-color:#2456d6;color:#2456d6}
+  button.bb{border-color:#c2571f;color:#c2571f}
+  button.ba.sel{background:#eef2ff}button.bb.sel{background:#fff3ea}
   .play .tag{font-weight:600;min-width:24px}
   .done{color:var(--ok);font-weight:600}
   progress{width:100%;height:8px}
@@ -54,7 +61,7 @@ const I18N={
     anchorQ:"How natural does this clip sound?",
     cmosQ:"Which clip sounds more natural?",
     cmosSub:"Same sentence, two versions. Listen to both fully.",
-    cmosLegend:"How to answer: minus = clip <b>A</b> sounds more natural, plus = clip <b>B</b>; the bigger the number, the stronger your preference. \"same\" = no difference.",
+    cmosLegend:"How to answer: minus = clip <b class=ca>A</b> sounds more natural, plus = clip <b class=cb>B</b>; the bigger the number, the stronger your preference. \"same\" = no difference.",
     intensityQ:"In which clip does the emotion sound STRONGER?",
     intensitySub:"Listen to both fully.",
     halfQ:"Where do you hear the emotion?",
@@ -86,7 +93,7 @@ const I18N={
     anchorQ:"Насколько естественно звучит эта запись?",
     cmosQ:"Какая запись звучит более естественно?",
     cmosSub:"Одно и то же предложение, две версии. Прослушайте обе полностью.",
-    cmosLegend:"Как отвечать: минус — запись <b>A</b> звучит естественнее, плюс — запись <b>B</b>; чем больше число, тем сильнее ваше предпочтение. «одинаково» — разницы нет.",
+    cmosLegend:"Как отвечать: минус — запись <b class=ca>A</b> звучит естественнее, плюс — запись <b class=cb>B</b>; чем больше число, тем сильнее ваше предпочтение. «одинаково» — разницы нет.",
     intensityQ:"В какой записи эмоция звучит СИЛЬНЕЕ?",
     intensitySub:"Прослушайте обе полностью.",
     halfQ:"В какой части вы слышите эмоцию?",
@@ -148,7 +155,8 @@ function el(html){const d=document.createElement("div");d.innerHTML=html;return 
 
 function player(tag,src,onended){
   const t=L();
-  const w=el(`<div class="play"><span class="tag">${tag}</span><button>${t.play}</button><span class="mut st">${t.notPlayed}</span></div>`);
+  const cls=tag==="A"?" pa":tag==="B"?" pb":"";
+  const w=el(`<div class="play${cls}"><span class="tag">${tag}</span><button>${t.play}</button><span class="mut st">${t.notPlayed}</span></div>`);
   const btn=w.querySelector("button"),st=w.querySelector(".st");
   let a=null,playedFull=false;
   btn.onclick=()=>{
@@ -246,12 +254,12 @@ function screenTask(){
     c.append(el(`<p class="mut">${t.cmosLegend}</p>`));
     c.append(pa,pb);
     ctrl=el(`<div class="scale"></div>`);
-    LABELS.cmos.en.forEach((_,k)=>{const b=el(`<button disabled>${bilabel("cmos",k)}</button>`);b.onclick=()=>done(k-3,null,b);ctrl.append(b);});
+    LABELS.cmos.en.forEach((_,k)=>{const side=k<3?" ba":k>3?" bb":"";const b=el(`<button disabled class="${side.trim()}">${bilabel("cmos",k)}</button>`);b.onclick=()=>done(k-3,null,b);ctrl.append(b);});
   }else if(it.type==="afc_intensity"){
     c.append(el(`<h2>${t.intensityQ}</h2><p class="mut">${t.intensitySub}</p>`));
     c.append(pa,pb);
     ctrl=el(`<div class="row"></div>`);
-    LABELS.ab.v.forEach((v,k)=>{const b=el(`<button disabled>${bilabel("ab",k)}</button>`);b.onclick=()=>done(v,null,b);ctrl.append(b);});
+    LABELS.ab.v.forEach((v,k)=>{const b=el(`<button disabled class="${k===0?"ba":"bb"}">${bilabel("ab",k)}</button>`);b.onclick=()=>done(v,null,b);ctrl.append(b);});
   }else{ // afc_half
     c.append(el(`<h2>${t.halfQ}</h2><p class="mut">${t.halfSub}</p>`));
     c.append(pa);

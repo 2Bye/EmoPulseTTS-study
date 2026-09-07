@@ -222,7 +222,11 @@ function screenHp(i){
 function buildQueue(){
   const m=S.manifest;
   const sched=m.schedules[hashInt(S.pid)%m.schedules.length];
-  const ids=[...sched.A,...sched.B,...(sched.C||[])];
+  // per-listener deterministic shuffle WITHIN each block (anti system-recognition
+  // bias, pilot feedback); seeded by pid so resume rebuilds the same order
+  const rnd=(seed=>()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;})(hashInt(S.pid)+7);
+  const shuf=a=>{const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;};
+  const ids=[...shuf(sched.A),...shuf(sched.B),...shuf(sched.C||[])];
   const q=ids.map(id=>m.items[id]).filter(Boolean);
   // insert anchors ~1/3 and ~2/3 through
   (m.anchors||[]).forEach((a,k)=>q.splice(Math.floor(q.length*(k+1)/3),0,a));

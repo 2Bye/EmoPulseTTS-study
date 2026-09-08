@@ -1,0 +1,64 @@
+<title>EmoPulseTTS — демо</title><style>*{box-sizing:border-box}body{margin:0;padding:24px 16px 64px;font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f1115;color:#e7e9ee}
+.wrap{max-width:860px;margin:0 auto}h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:34px 0 4px;color:#fff}
+.lead,.sub{color:#9aa3b2;font-size:13.5px;margin:0 0 14px}.card{background:#171a21;border:1px solid #232734;border-radius:10px;padding:12px 14px;margin:8px 0}
+.t{font-weight:600;margin-bottom:2px}.d{color:#8b93a3;font-size:12.5px;margin-bottom:8px}audio{width:100%;height:34px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.row .card{margin:0}
+footer{margin-top:40px;color:#6b7280;font-size:12px;border-top:1px solid #232734;padding-top:14px}</style><div class=wrap>
+<h1>EmoPulseTTS — что звучит на 08.09.2026</h1>
+<p class=lead>Лучшее из кампании: бесшовное переключение эмоции внутри фразы, непрерывная интенсивность и «кисть». Подписи восстановлены из приватных манифестов, ничего не пересчитывалось.</p>
+<h2>Бесшовное переключение эмоции внутри фразы</h2>
+<p class=sub>Главное сравнение: VITS2 (детекция 0.946) против лучшего, что удалось выжать из авторегрессионной Qwen (0.768). Слушайте середину фразы.</p>
+<div>
+<div class=card><div class=t>VITS2 — переключение внутри фразы #1</div><div class=d>6.1 с · 22.05 кГц · один проход, без склейки</div><audio controls preload=none src='audio/vits2_switch_1.ogg'></audio></div>
+<div class=card><div class=t>VITS2 — переключение внутри фразы #2</div><div class=d>6.2 с · 22.05 кГц · один проход, без склейки</div><audio controls preload=none src='audio/vits2_switch_2.ogg'></audio></div>
+<div class=card><div class=t>VITS2 — переключение внутри фразы #3</div><div class=d>6.4 с · 22.05 кГц · один проход, без склейки</div><audio controls preload=none src='audio/vits2_switch_3.ogg'></audio></div>
+<div class=card><div class=t>Qwen + anchor_steer — переключение #1</div><div class=d>7.0 с · 24 кГц · правка контекста на лету, без обучения</div><audio controls preload=none src='audio/ar_switch_1.ogg'></audio></div>
+<div class=card><div class=t>Qwen + anchor_steer — переключение #2</div><div class=d>6.6 с · 24 кГц · правка контекста на лету, без обучения</div><audio controls preload=none src='audio/ar_switch_2.ogg'></audio></div>
+<div class=card><div class=t>Qwen + anchor_steer — переключение #3</div><div class=d>6.8 с · 24 кГц · правка контекста на лету, без обучения</div><audio controls preload=none src='audio/ar_switch_3.ogg'></audio></div>
+</div>
+<h2>Непрерывная интенсивность — гнев (Qwen champion s508)</h2>
+<p class=sub>Одна фраза, один сид, меняется только коэффициент интенсивности. C1 = 0.766.</p>
+<div class=row>
+<div class=card><div class=t>α = 0.00</div><audio controls preload=none src='audio/ladder_angry_000.ogg'></audio></div>
+<div class=card><div class=t>α = 0.25</div><audio controls preload=none src='audio/ladder_angry_025.ogg'></audio></div>
+<div class=card><div class=t>α = 0.50</div><audio controls preload=none src='audio/ladder_angry_050.ogg'></audio></div>
+<div class=card><div class=t>α = 0.75</div><audio controls preload=none src='audio/ladder_angry_075.ogg'></audio></div>
+<div class=card><div class=t>α = 1.00</div><audio controls preload=none src='audio/ladder_angry_100.ogg'></audio></div>
+</div>
+<h2>Непрерывная интенсивность — радость (Qwen champion s508)</h2>
+<div class=row>
+<div class=card><div class=t>α = 0.00</div><audio controls preload=none src='audio/ladder_happy_000.ogg'></audio></div>
+<div class=card><div class=t>α = 0.25</div><audio controls preload=none src='audio/ladder_happy_025.ogg'></audio></div>
+<div class=card><div class=t>α = 0.50</div><audio controls preload=none src='audio/ladder_happy_050.ogg'></audio></div>
+<div class=card><div class=t>α = 0.75</div><audio controls preload=none src='audio/ladder_happy_075.ogg'></audio></div>
+<div class=card><div class=t>α = 1.00</div><audio controls preload=none src='audio/ladder_happy_100.ogg'></audio></div>
+</div>
+<h2>Непрерывная интенсивность — грусть (Qwen champion s508)</h2>
+<div class=row>
+<div class=card><div class=t>α = 0.00</div><audio controls preload=none src='audio/ladder_sad_000.ogg'></audio></div>
+<div class=card><div class=t>α = 0.25</div><audio controls preload=none src='audio/ladder_sad_025.ogg'></audio></div>
+<div class=card><div class=t>α = 0.50</div><audio controls preload=none src='audio/ladder_sad_050.ogg'></audio></div>
+<div class=card><div class=t>α = 0.75</div><audio controls preload=none src='audio/ladder_sad_075.ogg'></audio></div>
+<div class=card><div class=t>α = 1.00</div><audio controls preload=none src='audio/ladder_sad_100.ogg'></audio></div>
+</div>
+<h2>«Кисть»: эмоция только на части фразы (Qwen)</h2>
+<p class=sub>Спан-рендер с кроссфейдом 20 мс — тот самый вариант, где слушатели пилота слышали шов и давали 100 % локализации.</p>
+<div>
+<div class=card><div class=t>angry в первой половине (одно слово)</div><div class=d>The lantern flickered above the doorway as the family gathered around …</div><audio controls preload=none src='audio/brush_C000.ogg'></audio></div>
+<div class=card><div class=t>sad в первой половине (фрагмент фразы)</div><div class=d>The lantern flickered above the doorway as the family gathered around …</div><audio controls preload=none src='audio/brush_C010.ogg'></audio></div>
+<div class=card><div class=t>angry в первой половине (фрагмент фразы)</div><div class=d>The wooden staircase creaked beneath our boots while we carried the bo…</div><audio controls preload=none src='audio/brush_C002.ogg'></audio></div>
+<div class=card><div class=t>sad в второй половине (фрагмент фразы)</div><div class=d>The clerk stamped every page and then returned the heavy folder to the…</div><audio controls preload=none src='audio/brush_C012.ogg'></audio></div>
+<div class=card><div class=t>angry в второй половине (одно слово)</div><div class=d>The tailor measured the sleeves twice and then folded the finished jac…</div><audio controls preload=none src='audio/brush_C004.ogg'></audio></div>
+<div class=card><div class=t>sad в второй половине (фрагмент фразы)</div><div class=d>The secretary filed every letter and then carried the leather briefcas…</div><audio controls preload=none src='audio/brush_C015.ogg'></audio></div>
+</div>
+<h2>Голос VITS2 без переключений</h2>
+<p class=sub>Чтобы отдельно оценить натуральность платформы: UTMOS 4.040 против 4.327 у champion.</p>
+<div>
+<div class=card><div class=t>VITS2 — одиночная эмоция #1</div><div class=d>2.8 с · для оценки голоса и качества</div><audio controls preload=none src='audio/vits2_single_1.ogg'></audio></div>
+<div class=card><div class=t>VITS2 — одиночная эмоция #2</div><div class=d>3.6 с · для оценки голоса и качества</div><audio controls preload=none src='audio/vits2_single_2.ogg'></audio></div>
+<div class=card><div class=t>VITS2 — одиночная эмоция #3</div><div class=d>3.5 с · для оценки голоса и качества</div><audio controls preload=none src='audio/vits2_single_3.ogg'></audio></div>
+<div class=card><div class=t>VITS2 — одиночная эмоция #4</div><div class=d>3.5 с · для оценки голоса и качества</div><audio controls preload=none src='audio/vits2_single_4.ogg'></audio></div>
+<div class=card><div class=t>VITS2 — одиночная эмоция #5</div><div class=d>4.3 с · для оценки голоса и качества</div><audio controls preload=none src='audio/vits2_single_5.ogg'></audio></div>
+<div class=card><div class=t>VITS2 — одиночная эмоция #6</div><div class=d>3.1 с · для оценки голоса и качества</div><audio controls preload=none src='audio/vits2_single_6.ogg'></audio></div>
+</div>
+<footer>Qwen3-TTS-12Hz-0.6B (champion s508, anchor_steer) · MB-iSTFT-VITS2 + per-phoneme VAD (vits2postdec@20000) · внутренняя страница проекта</footer></div>

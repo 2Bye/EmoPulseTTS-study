@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Listening Study</title>
+<style>
+  :root{--bg:#f7f6f2;--card:#fff;--ink:#1c1c1c;--mut:#6b6b6b;--acc:#2456d6;--ok:#1a7f37;--bad:#b42318}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
+  main{max-width:680px;margin:0 auto;padding:24px 16px 80px}
+  .card{background:var(--card);border:1px solid #e4e2da;border-radius:12px;padding:20px;margin:14px 0}
+  h1{font-size:22px;margin:8px 0} h2{font-size:17px;margin:0 0 10px}
+  .mut{color:var(--mut);font-size:14px}
+  button{font:inherit;border:1px solid #cfcdc4;background:#fff;border-radius:10px;padding:10px 16px;cursor:pointer}
+  button:disabled{opacity:.45;cursor:default}
+  button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+  input[type=text]{font:inherit;border:1px solid #cfcdc4;border-radius:10px;padding:10px 12px;min-width:200px}
+  textarea{font:inherit;border:1px solid #cfcdc4;border-radius:10px;padding:10px 12px;width:100%;box-sizing:border-box}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .scale{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+  .scale button{min-width:52px}
+  .play{display:flex;align-items:center;gap:10px;margin:8px 0;border-left:4px solid transparent;border-radius:8px;padding:6px 8px}
+  .pa{border-left-color:#2456d6;background:#eef2ff}
+  .pb{border-left-color:#c2571f;background:#fff3ea}
+  .pa .tag{color:#2456d6}.pb .tag{color:#c2571f}
+  .ca{color:#2456d6}.cb{color:#c2571f}
+  button.ba{border-color:#2456d6;color:#2456d6}
+  button.bb{border-color:#c2571f;color:#c2571f}
+  button.ba.sel{background:#eef2ff}button.bb.sel{background:#fff3ea}
+  .play .tag{font-weight:600;min-width:24px}
+  .done{color:var(--ok);font-weight:600}
+  progress{width:100%;height:8px}
+  .err{color:var(--bad)}
+  .warn{background:#fff4e5;border:1px solid #e8cfa2;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:14px}
+  button.sel{border-color:var(--acc);background:#eef2ff;font-weight:600}
+  .hpbox{background:#fff8e1;border:1px solid #e6d9a8;border-radius:10px;padding:12px 14px;margin:10px 0;font-size:15px}
+  .words{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;line-height:2.1}
+  .words button{padding:7px 11px;border-radius:8px}
+  .words button.sel{border-color:var(--acc);background:#eef2ff;font-weight:600}
+</style>
+</head>
+<body>
+<main id="app"><div class="card"><h1>Listening study</h1><p class="mut" id="boot">Loading…</p></div></main>
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const app=$("#app");
+const S={pid:null,src:"prolific",lang:"en",manifest:null,answers:[],idx:0,queue:[],hpPass:0,
+         t0:Date.now(),scheduleIndex:null,media:{},failed:{},exit:{}};
+const LS_KEY="study_state_v2";
+
+const I18N={
+  en:{
+    introTitle:"Listening study (~20 min)",
+    introP1:"You will listen to short English speech clips and answer simple questions: which clip sounds more natural, which sounds more emotional, where in a sentence the emotion sits, and whether the emotion changes partway through.",
+    introP2:"<div class=hpbox>🎧 <b><u>Please use HEADPHONES</u></b> — this is required. Listen in a quiet room; a short headphone check comes first.</div>",
+    introP2b:"A few recordings are deliberately noisy or distorted — that is part of the design, not a fault.",
+    introP3:"Anonymous participation; only your participant ID and your answers are recorded. Audio is synthetic speech generated for research. You may stop at any time (no data is sent before the end). By continuing you consent to the use of your anonymised answers in academic research.",
+    startBtn:"I use headphones — start",
+    noAudioTitle:"Your browser cannot play this study's audio",
+    noAudioBody:"This study uses Ogg Vorbis audio, which your browser does not support. Please open the link in Chrome, Firefox or Edge (or Safari 17.4+). If you cannot, please return the submission on Prolific — you will not be able to complete it in this browser.",
+    preTitle:"Preparing the audio…",
+    preBody:"Downloading your clips so nothing stalls mid-task. This takes a few seconds.",
+    preFailTitle:"Some audio could not be downloaded",
+    preFailBody:n=>`${n} clip(s) failed to load after three attempts. You can still continue — the affected tasks will be skipped and marked. If many clips failed, please check your connection and reload the page.`,
+    preContinue:"Continue",
+    hpFailTitle:"Headphone check not passed",
+    hpFailBody:(pass,total,need)=>`This study requires headphones (${pass}/${total} correct, need ${need}). Please return the submission on Prolific.`,
+    hpTitle:(i,total)=>`Headphone check ${i}/${total}`,
+    hpQuestion:"You will hear <b>three tones</b>. Which one is the <b>quietest</b>? (press the answer button below)",
+    anchorQ:"How would you rate the SOUND QUALITY of this recording?",
+    anchorSub:"Judge noise, distortion and clarity of the audio only — not the voice, the intonation, or what is said.",
+    cmosQ:"Which clip sounds more natural?",
+    cmosSub:"Same sentence, two versions. Listen to both fully.",
+    cmosLegend:"Pick the button that matches your impression — which clip (<b class=ca>A</b> or <b class=cb>B</b>) sounds more natural, and by how much. If you hear no difference, pick the middle one. The two clips may differ in intonation (e.g. question vs statement) — neither is \"the right one\"; judge how natural each sounds as human speech, and if an intonation feels odd for the sentence, that counts too.",
+    intensityQ:"In which clip does the emotion sound STRONGER?",
+    intensitySub:"Listen to both fully. Judge the strength of the EMOTION: if the clips differ mainly in sentence melody (one sounds like a question, the other like a statement), pick the one with the stronger emotion, not the one that sounds more unusual. There is no \"same\" option on purpose: if the difference is barely there, still pick the closer one — that is expected.",
+    wordQ:"Click the ONE word where the emotion is strongest.",
+    wordSub:"Listen to the clip fully, then click a word in the sentence below. Some clips carry very little emotion — still pick the word that comes closest. You must choose one word.",
+    changeQ:"In which clip does the emotion CHANGE partway through the sentence?",
+    changeSub:"One clip keeps the same emotion from beginning to end; the other starts in one emotion and changes to another. Listen to both fully and pick the clip that changes.",
+    instrTitle:b=>`Next section (${b} of 4)`,
+    instrGo:"Start this section",
+    instr:{
+      A:"<b>Naturalness.</b> Each task plays two versions of the same sentence. Decide which one sounds more like natural human speech, and how much better it is.",
+      B:"<b>Emotion strength.</b> Each task plays two versions of the same sentence. Decide in which one the emotion sounds stronger. Some pairs are very close together — pick the closer one anyway.",
+      C:"<b>Where is the emotion?</b> Each task plays ONE clip and shows the sentence as clickable words. After listening, click the single word where the emotion is strongest. Some clips carry very little emotion — pick the closest word anyway.",
+      D:"<b>Does the emotion change?</b> Each task plays two clips of the same two sentences. In one of them the emotion changes partway through; in the other it stays the same. Pick the one that changes."
+    },
+    play:"▶ play",stop:"■ stop",replay:"▶ replay",
+    notPlayed:"not played",playingSt:"playing…",playedSt:"✓ played",
+    blockedSt:"blocked — click again",errorSt:"load error",
+    audioBroken:"This clip could not be loaded; the buttons are unlocked so you can move on. Your answer here will not be used.",
+    progress:(i,total)=>`${i} / ${total}`,
+    submittingTitle:"Submitting…",submittingBody:"Sending your answers.",
+    doneMsg:"Done — thank you!",redirecting:" Redirecting to Prolific…",
+    uploadFailed:"Automatic upload failed. Please download the file and send it to the researcher, then use the completion code from Prolific.",
+    downloadBtn:"Download my answers",
+    exitTitle:"Two last questions (optional)",
+    exitSaved:"Your answers are already saved — these two questions are optional.",
+    exitHp:"Did you wear headphones for the whole study?",
+    exitHpOpts:["Yes, throughout","Partly","No"],
+    exitFree:"Anything you noticed or want to tell us? (optional)",
+    exitSend:"Send and finish",exitSkip:"Skip and finish",
+    noPid:"No Prolific ID in the link.",
+    manualLabel:"Please enter your name or nickname:",
+    manualPlaceholder:"Your name",
+    manualSubmit:"Continue",
+    resumeMsg:(pid,i,total)=>`Found saved progress for <b>${pid}</b> (task ${i} of ${total}).`,
+    resumeBtn:"Continue where I left off",
+    restartBtn:"Start over",
+    manifestErr:e=>`Cannot load study: ${e}`,
+  },
+  ru:{
+    introTitle:"Исследование восприятия речи (~20 мин)",
+    introP1:"Вы прослушаете короткие английские аудиозаписи и ответите на простые вопросы: какая запись звучит естественнее, в какой эмоция сильнее, в каком слове предложения звучит эмоция и меняется ли эмоция по ходу фразы.",
+    introP2:"<div class=hpbox>🎧 <b><u>Обязательно слушайте В НАУШНИКАХ</u></b>. Найдите тихое место; сначала будет короткая проверка наушников.</div>",
+    introP2b:"Некоторые записи намеренно зашумлены или искажены — это часть замысла, а не брак.",
+    introP3:"Участие анонимно; сохраняются только ваш идентификатор участника и ваши ответы. Аудио — синтетическая речь, созданная для исследования. Вы можете остановиться в любой момент (данные не отправляются до завершения). Продолжая, вы соглашаетесь на использование ваших обезличенных ответов в академическом исследовании.",
+    startBtn:"Я использую наушники — начать",
+    noAudioTitle:"Ваш браузер не может проиграть аудио этого исследования",
+    noAudioBody:"Исследование использует аудио Ogg Vorbis, которое ваш браузер не поддерживает. Откройте ссылку в Chrome, Firefox или Edge (или Safari 17.4+). Если это невозможно, верните заявку на Prolific — в этом браузере пройти исследование не получится.",
+    preTitle:"Готовим аудио…",
+    preBody:"Загружаем ваши записи заранее, чтобы ничего не зависло посреди задания. Это займёт несколько секунд.",
+    preFailTitle:"Часть аудио не загрузилась",
+    preFailBody:n=>`${n} записей не удалось загрузить после трёх попыток. Можно продолжить — соответствующие задания будут пропущены и помечены. Если не загрузилось много записей, проверьте соединение и перезагрузите страницу.`,
+    preContinue:"Продолжить",
+    hpFailTitle:"Проверка наушников не пройдена",
+    hpFailBody:(pass,total,need)=>`Для этого исследования нужны наушники (${pass}/${total} верно, нужно ${need}). Пожалуйста, верните заявку на Prolific.`,
+    hpTitle:(i,total)=>`Проверка наушников ${i}/${total}`,
+    hpQuestion:"Вы услышите <b>три тона</b>. Какой из них самый <b>тихий</b>? (нажмите кнопку с ответом ниже)",
+    anchorQ:"Как вы оцените КАЧЕСТВО ЗВУКА этой записи?",
+    anchorSub:"Оценивайте только шум, искажения и чистоту звука — не голос, не интонацию и не содержание.",
+    cmosQ:"Какая запись звучит более естественно?",
+    cmosSub:"Одно и то же предложение, две версии. Прослушайте обе полностью.",
+    cmosLegend:"Выберите кнопку, которая совпадает с вашим впечатлением: какая запись (<b class=ca>A</b> или <b class=cb>B</b>) звучит естественнее и насколько. Если разницы не слышно — средняя кнопка. Интонация может отличаться (например, вопрос и утверждение) — «правильной» нет: оценивайте, насколько запись похожа на естественную человеческую речь.",
+    intensityQ:"В какой записи эмоция звучит СИЛЬНЕЕ?",
+    intensitySub:"Прослушайте обе полностью. Оценивайте силу ЭМОЦИИ: если записи отличаются в основном интонацией фразы, выберите ту, где сильнее эмоция, а не ту, где интонация необычнее. Кнопки «одинаково» здесь нет намеренно: если разница едва заметна — всё равно выберите то, что ближе.",
+    wordQ:"Нажмите ОДНО слово, в котором эмоция сильнее всего.",
+    wordSub:"Прослушайте запись полностью, затем нажмите слово в предложении ниже. В некоторых записях эмоции почти нет — всё равно выберите ближайшее слово. Выбрать нужно одно слово.",
+    changeQ:"В какой записи эмоция МЕНЯЕТСЯ по ходу фразы?",
+    changeSub:"В одной записи эмоция одна и та же от начала до конца; в другой она начинается одной и меняется на другую. Прослушайте обе полностью и выберите ту, где происходит смена.",
+    instrTitle:b=>`Следующий раздел (${b} из 4)`,
+    instrGo:"Начать раздел",
+    instr:{
+      A:"<b>Естественность.</b> В каждом задании звучат две версии одного предложения. Решите, какая больше похожа на естественную человеческую речь и насколько.",
+      B:"<b>Сила эмоции.</b> В каждом задании звучат две версии одного предложения. Решите, в какой эмоция сильнее. Некоторые пары очень близки — всё равно выберите то, что ближе.",
+      C:"<b>Где эмоция?</b> В каждом задании звучит ОДНА запись, а предложение показано словами-кнопками. Прослушав, нажмите одно слово, в котором эмоция сильнее всего. В некоторых записях эмоции почти нет — всё равно выберите ближайшее слово.",
+      D:"<b>Меняется ли эмоция?</b> В каждом задании звучат две записи одних и тех же двух предложений. В одной эмоция меняется по ходу, в другой остаётся прежней. Выберите ту, где происходит смена."
+    },
+    play:"▶ слушать",stop:"■ стоп",replay:"▶ ещё раз",
+    notPlayed:"не прослушано",playingSt:"воспроизведение…",playedSt:"✓ прослушано",
+    blockedSt:"заблокировано — нажмите ещё раз",errorSt:"ошибка загрузки",
+    audioBroken:"Эту запись не удалось загрузить; кнопки разблокированы, чтобы вы могли идти дальше. Ответ здесь не будет использован.",
+    progress:(i,total)=>`${i} / ${total}`,
+    submittingTitle:"Отправка…",submittingBody:"Отправляем ваши ответы.",
+    doneMsg:"Готово — спасибо!",redirecting:" Перенаправление на Prolific…",
+    uploadFailed:"Автоматическая отправка не удалась. Пожалуйста, скачайте файл и отправьте его исследователю, затем используйте код завершения от Prolific.",
+    downloadBtn:"Скачать мои ответы",
+    exitTitle:"Два последних вопроса (необязательно)",
+    exitSaved:"Ваши ответы уже сохранены — эти два вопроса необязательны.",
+    exitHp:"Вы были в наушниках всё исследование?",
+    exitHpOpts:["Да, всё время","Частично","Нет"],
+    exitFree:"Что-то заметили или хотите сказать? (необязательно)",
+    exitSend:"Отправить и завершить",exitSkip:"Пропустить и завершить",
+    noPid:"В ссылке нет Prolific ID.",
+    manualLabel:"Введите ваше имя или ник:",
+    manualPlaceholder:"Имя или ник",
+    manualSubmit:"Продолжить",
+    resumeMsg:(pid,i,total)=>`Найден сохранённый прогресс для <b>${pid}</b> (задание ${i} из ${total}).`,
+    resumeBtn:"Продолжить с того же места",
+    restartBtn:"Начать заново",
+    manifestErr:e=>`Не удалось загрузить исследование: ${e}`,
+  },
+};
+const LABELS={
+  hp:{en:["1st","2nd","3rd"],ru:["1-й","2-й","3-й"]},
+  scale5:{en:["1 very bad","2","3","4","5 excellent"],ru:["1 очень плохо","2","3","4","5 отлично"]},
+  cmos:{en:["A much better","A better","A slightly better","No difference","B slightly better","B better","B much better"],
+        ru:["A намного лучше","A лучше","A чуть лучше","Одинаково","B чуть лучше","B лучше","B намного лучше"]},
+  ab:{v:["a","b"],en:["Clip A","Clip B"],ru:["Клип A","Клип B"]},
+};
+function L(){return I18N[S.lang];}
+function bilabel(cat,i){
+  const en=LABELS[cat].en[i];
+  if(S.lang!=="ru")return en;
+  const ru=LABELS[cat].ru[i];
+  return ru===en?en:`${ru} / ${en}`;
+}
+
+function pidFromUrl(){const u=new URL(location.href);return u.searchParams.get("PROLIFIC_PID")||u.searchParams.get("pid");}
+function srcFromUrl(){
+  const u=new URL(location.href);
+  const v=(u.searchParams.get("src")||"").toLowerCase();
+  if(v==="prolific")return "prolific";
+  if(v==="pilot"||v==="friends")return "pilot";
+  return u.searchParams.get("PROLIFIC_PID")?"prolific":"pilot";
+}
+function langFromUrl(){
+  const u=new URL(location.href);
+  const v=(u.searchParams.get("lang")||"").toLowerCase();
+  if(v==="ru"||v==="en")return v;
+  return (navigator.language||"en").toLowerCase().startsWith("ru")?"ru":"en";
+}
+// FNV-1a 32-bit over the UTF-16 code units of the pid.  Mirrored in
+// scripts/analyze_listening.py; the schedule index is ALSO written into the payload so the
+// analysis never has to re-derive it (engineer review #8).
+function fnv1a(s){let h=0x811c9dc5>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i)&0xff;h=Math.imul(h,0x01000193)>>>0;
+  const hi=(s.charCodeAt(i)>>8)&0xff;if(hi){h^=hi;h=Math.imul(h,0x01000193)>>>0;}}return h>>>0;}
+function audioUrl(id){return `audio/${id}.${S.manifest.audio_ext}`;}
+function mediaFor(id){return S.media[id]||audioUrl(id);}
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify({pid:S.pid,answers:S.answers,idx:S.idx,hpPass:S.hpPass,scheduleIndex:S.scheduleIndex}));}catch(e){}}
+function loadSaved(){try{return JSON.parse(localStorage.getItem(LS_KEY));}catch(e){return null;}}
+function el(html){const d=document.createElement("div");d.innerHTML=html;return d.firstElementChild;}
+
+// ---- players are MUTUALLY EXCLUSIVE: starting one pauses the other, so response time is
+// ---- structurally at least the sum of the clip durations and cannot overlap them.
+let ACTIVE=null;
+function player(tag,cid,onended){
+  const t=L();
+  const cls=tag==="A"?" pa":tag==="B"?" pb":"";
+  const w=el(`<div class="play${cls}"><span class="tag">${tag}</span><button>${t.play}</button><span class="mut st">${t.notPlayed}</span></div>`);
+  const btn=w.querySelector("button"),st=w.querySelector(".st");
+  let a=null,playedFull=false;
+  const stop=()=>{if(a){a.pause();a=null;btn.textContent=playedFull?t.replay:t.play;if(!playedFull)st.textContent=t.notPlayed;}};
+  w.stop=stop;
+  btn.onclick=()=>{
+    if(a){stop();return;}
+    if(ACTIVE&&ACTIVE!==w&&ACTIVE.stop)ACTIVE.stop();
+    ACTIVE=w;
+    a=new Audio(mediaFor(cid));btn.textContent=t.stop;st.textContent=t.playingSt;
+    a.onended=()=>{playedFull=true;st.textContent=t.playedSt;st.className="st done";btn.textContent=t.replay;a=null;onended&&onended();};
+    a.onerror=()=>{st.textContent=t.errorSt;st.className="st err";a=null;btn.textContent=t.play;};
+    a.play().catch(err=>{
+      const blocked=err&&err.name==="NotAllowedError";
+      st.textContent=blocked?t.blockedSt:t.errorSt;
+      if(!blocked)st.className="st err";
+      a=null;btn.textContent=t.play;});
+  };
+  w.played=()=>playedFull;
+  return w;
+}
+
+function screenNoAudio(){
+  const t=L();app.innerHTML="";
+  app.append(el(`<div class="card"><h2>${t.noAudioTitle}</h2><p>${t.noAudioBody}</p></div>`));
+}
+
+function screenIntro(){
+  const t=L();
+  app.innerHTML="";
+  const c=el(`<div class="card"><h1>${t.introTitle}</h1>
+  <p>${t.introP1}</p>
+  ${t.introP2}
+  <p class="mut">${t.introP2b}</p>
+  <p class="mut">${t.introP3}</p>
+  <div class="row"><button class="primary" id="go">${t.startBtn}</button></div></div>`);
+  app.append(c);
+  $("#go").onclick=()=>{S.answers.push({id:"consent",v:1,t:Date.now()-S.t0});
+    buildQueue();
+    const sv=loadSaved();
+    if(sv&&sv.pid===S.pid&&sv.idx>0&&(sv.hpPass||0)>=(S.manifest.config.min_hp_pass??5)){S.hpPass=sv.hpPass;preload(()=>screenTask());return;}
+    preload(()=>screenHp(0));};
+}
+
+// ---- preload the WHOLE queue before any task: one 404, one buffering stall or one browser
+// ---- without Ogg support must not hard-block a listener on a task forever (engineer #6).
+function preload(next){
+  const t=L();
+  const ids=new Set();
+  (S.manifest.hp_check||[]).forEach(x=>ids.add(x.audio));
+  S.queue.forEach(q=>{if(q.audio)ids.add(q.audio);if(q.audio_a)ids.add(q.audio_a);if(q.audio_b)ids.add(q.audio_b);});
+  const list=[...ids];
+  app.innerHTML="";
+  const c=el(`<div class="card"><h2>${t.preTitle}</h2><p class="mut">${t.preBody}</p>
+    <progress id="pp" max="${list.length}" value="0"></progress><p class="mut" id="ps">0 / ${list.length}</p></div>`);
+  app.append(c);
+  let done=0;
+  const bump=()=>{done++;const p=$("#pp");if(p){p.value=done;$("#ps").textContent=`${done} / ${list.length}`;}};
+  const one=async id=>{
+    for(let k=0;k<3;k++){
+      try{const r=await fetch(audioUrl(id),{cache:"force-cache"});
+          if(!r.ok)throw new Error(r.status);
+          S.media[id]=URL.createObjectURL(await r.blob());return true;}
+      catch(e){await new Promise(r=>setTimeout(r,300*(k+1)));}
+    }
+    S.failed[id]=true;return false;
+  };
+  (async()=>{
+    for(const id of list){await one(id);bump();}
+    const nf=Object.keys(S.failed).length;
+    if(!nf)return next();
+    app.innerHTML="";
+    const w=el(`<div class="card"><h2>${t.preFailTitle}</h2><p>${t.preFailBody(nf)}</p>
+      <div class="row"><button class="primary" id="pc">${t.preContinue}</button></div></div>`);
+    app.append(w);$("#pc").onclick=next;
+  })();
+}
+
+function screenHp(i){
+  const t=L();
+  const trials=S.manifest.hp_check;
+  if(i>=trials.length){
+    const need=S.manifest.config.min_hp_pass??5;
+    if(S.hpPass>=need)return screenTask();
+    app.innerHTML="";app.append(el(`<div class="card"><h2>${t.hpFailTitle}</h2>
+      <p>${t.hpFailBody(S.hpPass,trials.length,need)}</p></div>`));
+    return;
+  }
+  app.innerHTML="";
+  const trial=trials[i];
+  const c=el(`<div class="card"><h2>${t.hpTitle(i+1,trials.length)}</h2><p>${t.hpQuestion}</p></div>`);
+  const p=player("♪",trial.audio,()=>{btns.forEach(b=>b.disabled=false);});
+  c.append(p);
+  if(S.failed[trial.audio]){c.append(el(`<div class="warn">${t.audioBroken}</div>`));setTimeout(()=>btns.forEach(b=>b.disabled=false),0);}
+  const row=el(`<div class="row"></div>`);const btns=[];let sent=false;
+  LABELS.hp.en.forEach((_,k)=>{const b=el(`<button disabled>${bilabel("hp",k)}</button>`);
+    b.onclick=()=>{if(sent)return;sent=true;btns.forEach(x=>{x.disabled=true;});b.classList.add("sel");b.textContent="✓ "+b.textContent;
+      if(k===trial.answer)S.hpPass++;
+      S.answers.push({id:trial.id,type:"hp",v:k,correct:k===trial.answer});save();setTimeout(()=>screenHp(i+1),300);};
+    btns.push(b);row.append(b);});
+  c.append(row);app.append(c);
+}
+
+function buildQueue(){
+  const m=S.manifest;
+  S.scheduleIndex=fnv1a(S.pid)%m.schedules.length;
+  const sched=m.schedules[S.scheduleIndex];
+  const rnd=(seed=>()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;})(fnv1a(S.pid)+7);
+  const shuf=a=>{const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;};
+  const order=sched.order&&sched.order.length?sched.order:["A","B","C","D"];
+  const q=[];
+  order.forEach(bk=>{
+    const ids=(sched[bk]||[]);
+    if(!ids.length)return;
+    q.push({id:`instr_${bk}`,type:"instr",block:bk});
+    shuf(ids).forEach(id=>{const it=m.items[id];if(it)q.push(it);});
+  });
+  // anchors: BOTH indices computed on the PRE-splice length (v1 computed the second on the
+  // already-grown array), and never immediately before an instruction screen.
+  const anchors=m.anchors||[];
+  const fr=(m.config&&m.config.anchor_splice_fracs)||[0.30,0.72];
+  const L0=q.length;
+  const at=anchors.map((a,k)=>{let i=Math.floor(L0*(fr[k]??((k+1)/3)));while(i<q.length&&q[i]&&q[i].type==="instr")i++;return i;});
+  at.map((i,k)=>[i,anchors[k]]).sort((x,y)=>y[0]-x[0]).forEach(([i,a])=>q.splice(i,0,a));
+  S.queue=q;
+  const saved=loadSaved();
+  if(saved&&saved.pid===S.pid&&saved.idx>0&&saved.idx<q.length){S.answers=saved.answers;S.idx=saved.idx;if(saved.hpPass)S.hpPass=saved.hpPass;}
+}
+
+function screenTask(){
+  const t=L();
+  if(S.idx>=S.queue.length)return screenSubmit();
+  const it=S.queue[S.idx];
+  app.innerHTML="";
+  const nTasks=S.queue.filter(x=>x.type!=="instr").length;
+  const doneTasks=S.queue.slice(0,S.idx).filter(x=>x.type!=="instr").length;
+  const head=el(`<div class="card"><progress max="${nTasks}" value="${doneTasks}"></progress>
+    <p class="mut">${t.progress(Math.min(doneTasks+1,nTasks),nTasks)}</p></div>`);
+  app.append(head);
+  const c=el(`<div class="card"></div>`);app.append(c);
+  const startT=Date.now();
+  let sent=false;
+  const done=(v,extra,btn)=>{
+    if(sent)return;sent=true;
+    if(btn){c.querySelectorAll("button").forEach(b=>b.disabled=true);btn.classList.add("sel");btn.textContent="✓ "+btn.textContent;}
+    S.answers.push(Object.assign({id:it.id,type:it.type,v,ms:Date.now()-startT},extra||{}));
+    S.idx++;save();setTimeout(screenTask,btn?350:0);};
+
+  if(it.type==="instr"){
+    const n=(S.queue.filter(x=>x.type==="instr").findIndex(x=>x.id===it.id))+1;
+    c.append(el(`<div><h2>${t.instrTitle(n)}</h2><p>${t.instr[it.block]}</p></div>`));
+    const b=el(`<button class="primary">${t.instrGo}</button>`);
+    b.onclick=()=>{S.answers.push({id:it.id,type:"instr",v:1,ms:Date.now()-startT});S.idx++;save();screenTask();};
+    const rw=el(`<div class="row"></div>`);rw.append(b);c.append(rw);
+    return;
+  }
+
+  if(it.type==="anchor"){
+    c.append(el(`<div><h2>${t.anchorQ}</h2><p class="mut">${t.anchorSub}</p></div>`));
+    const p=player("♪",it.audio,()=>sc.querySelectorAll("button").forEach(b=>b.disabled=false));
+    c.append(p);
+    const sc=el(`<div class="scale"></div>`);
+    LABELS.scale5.en.forEach((_,k)=>{const b=el(`<button disabled>${bilabel("scale5",k)}</button>`);
+      b.onclick=()=>done(k+1,null,b);sc.append(b);});
+    c.append(sc);
+    if(S.failed[it.audio]){c.append(el(`<div class="warn">${t.audioBroken}</div>`));sc.querySelectorAll("button").forEach(b=>b.disabled=false);}
+    return;
+  }
+
+  const broken=(it.audio_a&&S.failed[it.audio_a])||(it.audio_b&&S.failed[it.audio_b]);
+  const pa=player("A",it.audio_a,check), pb=it.audio_b?player("B",it.audio_b,check):null;
+  function check(){if(pa.played()&&(!pb||pb.played()))unlock();}
+  function unlock(){ctrl.querySelectorAll("button").forEach(b=>b.disabled=false);}
+  let ctrl;
+  if(it.type==="cmos"){
+    c.append(el(`<div><h2>${t.cmosQ}</h2><p class="mut">${t.cmosSub}</p></div>`));
+    c.append(el(`<p class="mut">${t.cmosLegend}</p>`));
+    c.append(pa,pb);
+    ctrl=el(`<div class="scale"></div>`);
+    LABELS.cmos.en.forEach((_,k)=>{const side=k<3?"ba":k>3?"bb":"";const b=el(`<button disabled class="${side}">${LABELS.cmos[S.lang][k]}</button>`);
+      b.onclick=()=>done(k-3,null,b);ctrl.append(b);});
+  }else if(it.type==="afc_intensity"){
+    c.append(el(`<div><h2>${t.intensityQ}</h2><p class="mut">${t.intensitySub}</p></div>`));
+    c.append(pa,pb);
+    ctrl=el(`<div class="row"></div>`);
+    LABELS.ab.v.forEach((v,k)=>{const b=el(`<button disabled class="${k===0?"ba":"bb"}">${bilabel("ab",k)}</button>`);b.onclick=()=>done(v,null,b);ctrl.append(b);});
+  }else if(it.type==="afc_change"){
+    c.append(el(`<div><h2>${t.changeQ}</h2><p class="mut">${t.changeSub}</p></div>`));
+    c.append(pa,pb);
+    ctrl=el(`<div class="row"></div>`);
+    LABELS.ab.v.forEach((v,k)=>{const b=el(`<button disabled class="${k===0?"ba":"bb"}">${bilabel("ab",k)}</button>`);b.onclick=()=>done(v,null,b);ctrl.append(b);});
+  }else if(it.type==="word_loc"){
+    c.append(el(`<div><h2>${t.wordQ}</h2><p class="mut">${t.wordSub}</p></div>`));
+    c.append(pa);
+    ctrl=el(`<div class="words"></div>`);
+    (it.words||[]).forEach((w,k)=>{const b=el(`<button disabled></button>`);b.textContent=w;
+      b.onclick=()=>done(k,{w:w},b);ctrl.append(b);});
+  }else{
+    c.append(el(`<div><h2>${it.type}</h2><p class="err">unsupported item type</p></div>`));
+    ctrl=el(`<div class="row"></div>`);
+  }
+  c.append(ctrl);
+  if(broken){c.append(el(`<div class="warn">${t.audioBroken}</div>`));unlock();}
+}
+
+async function post(payload){
+  const url=S.manifest.config.submit_url;
+  if(!url)return false;
+  try{const r=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)});return r.ok;}
+  catch(e){return false;}
+}
+
+async function screenSubmit(){
+  const t=L();
+  app.innerHTML="";
+  const c=el(`<div class="card"><h2>${t.submittingTitle}</h2><p class="mut" id="st">${t.submittingBody}</p></div>`);
+  app.append(c);
+  const payload={pid:S.pid,src:S.src,lang:S.lang,version:S.manifest.version,
+                 package:S.manifest.package,schedule_index:S.scheduleIndex,
+                 manifest_sha256:S.manifest.manifest_sha256||null,
+                 started:S.t0,finished:Date.now(),hp_pass:S.hpPass,
+                 audio_failed:Object.keys(S.failed),answers:S.answers,ua:navigator.userAgent};
+  S.payload=payload;
+  const ok=await post(payload);
+  const st=$("#st");
+  if(ok){
+    try{localStorage.removeItem(LS_KEY);}catch(e){}
+    st.textContent=t.doneMsg;
+    return screenExit();                      // the payload is ALREADY saved before this screen
+  }
+  st.innerHTML=t.uploadFailed;
+  const b=el(`<button class="primary">${t.downloadBtn}</button>`);
+  b.onclick=()=>{const a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(payload)],{type:"application/json"}));
+    a.download=`answers_${S.pid}.json`;a.click();};
+  c.append(b);
+}
+
+// ---- exit questions come AFTER the POST, never before it: abandoning here costs two optional
+// ---- answers, not the whole submission (engineer review #14.2).
+function screenExit(){
+  const t=L();
+  app.innerHTML="";
+  const c=el(`<div class="card"><h2>${t.exitTitle}</h2><p class="mut">${t.exitSaved}</p>
+    <p>${t.exitHp}</p><div class="row" id="hpq"></div>
+    <p style="margin-top:14px">${t.exitFree}</p><textarea id="free" rows="3"></textarea>
+    <div class="row" style="margin-top:12px"><button class="primary" id="send">${t.exitSend}</button>
+    <button id="skip">${t.exitSkip}</button></div></div>`);
+  app.append(c);
+  let hpAns=null;
+  t.exitHpOpts.forEach((lab,k)=>{const b=el(`<button></button>`);b.textContent=lab;
+    b.onclick=()=>{hpAns=k;c.querySelectorAll("#hpq button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");};
+    c.querySelector("#hpq").append(b);});
+  const finish=async send=>{
+    if(send)await post({pid:S.pid,src:S.src,version:S.manifest.version,package:S.manifest.package,
+                        row:"exit",schedule_index:S.scheduleIndex,finished:Date.now(),
+                        exit:{headphones:hpAns,free:($("#free").value||"").slice(0,2000)}});
+    const cu=S.manifest.config.completion_url;
+    app.innerHTML="";
+    app.append(el(`<div class="card"><h2>${t.doneMsg}</h2><p class="mut" id="rd"></p></div>`));
+    if(cu){$("#rd").textContent=t.redirecting;setTimeout(()=>location.href=cu,1200);}
+  };
+  $("#send").onclick=()=>finish(true);
+  $("#skip").onclick=()=>finish(false);
+}
+
+function screenManualPid(){
+  const t=L();
+  app.innerHTML="";
+  const noPidLine=S.src==="prolific"?`<p class="mut">${t.noPid}</p>`:"";
+  const c=el(`<div class="card"><h1>${t.introTitle}</h1>${noPidLine}
+    <div class="row"><label for="pidInput">${t.manualLabel}</label>
+    <input id="pidInput" type="text" placeholder="${t.manualPlaceholder}" autocomplete="off">
+    <button class="primary" id="pidGo">${t.manualSubmit}</button></div></div>`);
+  const sv=loadSaved();
+  if(sv&&sv.pid&&sv.idx>0&&Array.isArray(sv.answers)){
+    const total=(S.manifest&&S.manifest.schedules)?
+      (()=>{const s=S.manifest.schedules[fnv1a(sv.pid)%S.manifest.schedules.length];
+            return (s.A||[]).length+(s.B||[]).length+(s.C||[]).length+(s.D||[]).length+(S.manifest.anchors||[]).length;})():"?";
+    const r=el(`<div class="card"><p>${t.resumeMsg(sv.pid,sv.idx+1,total)}</p>
+      <div class="row"><button class="primary" id="resumeGo">${t.resumeBtn}</button>
+      <button id="restartGo">${t.restartBtn}</button></div></div>`);
+    app.append(r);
+    r.querySelector("#resumeGo").onclick=()=>{S.pid=sv.pid;screenIntro();};
+    r.querySelector("#restartGo").onclick=()=>{try{localStorage.removeItem(LS_KEY);}catch(e){}r.remove();};
+  }
+  app.append(c);
+  const input=$("#pidInput");
+  const go=()=>{const v=input.value.trim();if(!v)return;S.pid=v;screenIntro();};
+  $("#pidGo").onclick=go;
+  input.addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  input.focus();
+}
+
+(async function boot(){
+  S.src=srcFromUrl();
+  S.lang=langFromUrl();
+  document.documentElement.lang=S.lang;
+  try{
+    const r=await fetch("manifest.json");
+    if(!r.ok)throw new Error("manifest.json not found next to index.html");
+    S.manifest=await r.json();
+  }catch(e){$("#boot").innerHTML=`<span class="err">${L().manifestErr(e.message)}</span>`;return;}
+  // capability gate BEFORE consent: a browser that cannot decode the package's codec must be
+  // told to leave now, not discover it while hard-blocked on task 1 (engineer review #6).
+  const probe=document.createElement("audio");
+  const mime=(S.manifest.audio_ext==="ogg")?'audio/ogg; codecs="vorbis"':"audio/mpeg";
+  if(!probe.canPlayType(mime))return screenNoAudio();
+  const raw=pidFromUrl();
+  S.pid=(raw&&raw.trim().toLowerCase()!=="manual")?raw.trim():null;
+  if(!S.pid){screenManualPid();return;}
+  screenIntro();
+})();
+</script>
+</body>
+</html>

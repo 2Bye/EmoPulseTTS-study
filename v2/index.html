@@ -455,6 +455,8 @@ async function screenSubmit(){
     a.href=URL.createObjectURL(new Blob([JSON.stringify(payload)],{type:"application/json"}));
     a.download=`answers_${S.pid}.json`;a.click();};
   c.append(b);
+  const cu2=S.manifest.config.completion_url;
+  if(cu2){const g=el(`<p class="mut" style="margin-top:12px"><a href="${cu2}">${t.redirecting.trim().replace(/…$/,"")} → ${cu2.split("cc=")[1]||""}</a></p>`);c.append(g);}
 }
 
 // ---- exit questions come AFTER the POST, never before it: abandoning here costs two optional

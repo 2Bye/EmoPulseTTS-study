@@ -13,7 +13,7 @@
   "hp_exempt": true
  },
  "config": {
-  "submit_url": "https://script.google.com/macros/s/REPLACE_ME_V2/exec",
+  "submit_url": "https://script.google.com/macros/s/AKfycbxX_CqPeVI81H3k7yFB-Fa9iUeGx0k_AUcA8bh5dEfU-m01NQt6wxeWkd80vGDlNMTugg/exec",
   "completion_url": "https://app.prolific.com/submissions/complete?cc=C9P5KZF5",
   "min_hp_pass": 5,
   "anchor_splice_fracs": [
